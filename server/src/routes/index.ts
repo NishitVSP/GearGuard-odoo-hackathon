@@ -2,6 +2,7 @@
 
 import { Router } from 'express';
 import dashboardRoutes from './dashboardRoutes';
+import teamRoutes from './teamRoutes';
 import authRoutes from './authRoutes';
 const router = Router();
 
@@ -14,7 +15,7 @@ const router = Router();
 // Use routes
 router.use('/dashboard', dashboardRoutes);
 // router.use('/equipment', equipmentRoutes);
-// router.use('/teams', teamRoutes);
+router.use('/teams', teamRoutes);
 // router.use('/requests', requestRoutes);
 router.use('/auth', authRoutes);
 // router.use('/reports', reportRoutes);
