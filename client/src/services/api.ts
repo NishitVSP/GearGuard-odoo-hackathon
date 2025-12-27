@@ -304,4 +304,102 @@ export const getEquipmentCategories = async (): Promise<Array<{id: number; name:
   return response.data.data;
 };
 
+// ==================== Teams API ====================
+
+export interface Team {
+  id: number;
+  name: string;
+  specialization: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  member_count?: number;
+  active_requests?: number;
+  completed_requests?: number;
+}
+
+export interface TeamMember {
+  id: number;
+  user_id: number;
+  team_id: number;
+  role: string;
+  joined_at: string;
+  name?: string;
+  email?: string;
+  active_requests?: number;
+}
+
+export interface CreateTeamDto {
+  name: string;
+  specialization: string;
+  is_active: boolean;
+}
+
+export interface AddMemberDto {
+  user_id: number;
+  role: string;
+}
+
+/**
+ * Get all teams
+ */
+export const getTeams = async (): Promise<Team[]> => {
+  const response = await api.get('/teams');
+  return response.data.data;
+};
+
+/**
+ * Get team by ID with members
+ */
+export const getTeamById = async (id: number): Promise<Team & { members: TeamMember[] }> => {
+  const response = await api.get(`/teams/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Create a new team
+ */
+export const createTeam = async (data: CreateTeamDto): Promise<Team> => {
+  const response = await api.post('/teams', data);
+  return response.data.data;
+};
+
+/**
+ * Update a team
+ */
+export const updateTeam = async (id: number, data: Partial<CreateTeamDto>): Promise<Team> => {
+  const response = await api.put(`/teams/${id}`, data);
+  return response.data.data;
+};
+
+/**
+ * Delete a team
+ */
+export const deleteTeam = async (id: number): Promise<void> => {
+  await api.delete(`/teams/${id}`);
+};
+
+/**
+ * Add a member to a team
+ */
+export const addTeamMember = async (teamId: number, data: AddMemberDto): Promise<TeamMember> => {
+  const response = await api.post(`/teams/${teamId}/members`, data);
+  return response.data.data;
+};
+
+/**
+ * Remove a member from a team
+ */
+export const removeTeamMember = async (teamId: number, memberId: number): Promise<void> => {
+  await api.delete(`/teams/${teamId}/members/${memberId}`);
+};
+
+/**
+ * Get available users who can be added to a team
+ */
+export const getAvailableUsers = async (teamId: number): Promise<Array<{ id: number; email: string; name?: string }>> => {
+  const response = await api.get(`/teams/${teamId}/available-users`);
+  return response.data.data;
+};
+
 export default api;

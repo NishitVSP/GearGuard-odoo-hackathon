@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -10,127 +10,181 @@ import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
 import AssignTaskDialog from '../components/teams/AssignTaskDialog';
 import ViewProfileModal from '../components/teams/ViewProfileModal';
 import { FiPlus, FiUsers, FiEdit, FiTrash2 } from 'react-icons/fi';
+import * as api from '../services/api';
 
 interface Team {
   id: number;
   name: string;
   specialization: string;
-  memberCount: number;
-  activeRequests: number;
-  completedThisMonth: number;
-  members: TeamMember[];
+  is_active?: boolean;
+  member_count?: number;
+  active_requests?: number;
+  completed_requests?: number;
+  memberCount?: number;
+  activeRequests?: number;
+  completedThisMonth?: number;
+  members?: TeamMember[];
 }
 
 interface TeamMember {
   id: number;
-  name: string;
+  user_id?: number;
+  team_id?: number;
+  name?: string;
+  email?: string;
   role: string;
-  avatar: string;
-  status: 'available' | 'busy' | 'offline';
-  activeRequests: number;
+  avatar?: string;
+  status?: 'available' | 'busy' | 'offline';
+  active_requests?: number;
+  activeRequests?: number;
+  joined_at?: string;
 }
 
 export default function TeamManagement() {
-  const [selectedTeam, setSelectedTeam] = useState<number | null>(1);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
+  const [currentTeamDetails, setCurrentTeamDetails] = useState<(Team & { members: TeamMember[] }) | null>(null);
   const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
   const [isEditTeamModalOpen, setIsEditTeamModalOpen] = useState(false);
   const [isDeleteTeamDialogOpen, setIsDeleteTeamDialogOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [assignTaskMember, setAssignTaskMember] = useState<TeamMember | null>(null);
   const [viewProfileMember, setViewProfileMember] = useState<TeamMember | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data
-  const teams: Team[] = [
-    {
-      id: 1,
-      name: 'Mechanics Team',
-      specialization: 'CNC Machines & Heavy Equipment',
-      memberCount: 5,
-      activeRequests: 8,
-      completedThisMonth: 24,
-      members: [
-        { id: 1, name: 'Mike Johnson', role: 'Lead Mechanic', avatar: 'MJ', status: 'busy', activeRequests: 3 },
-        { id: 2, name: 'John Doe', role: 'Senior Mechanic', avatar: 'JD', status: 'available', activeRequests: 0 },
-        { id: 3, name: 'Tom Brown', role: 'Mechanic', avatar: 'TB', status: 'busy', activeRequests: 2 },
-        { id: 4, name: 'Steve Clark', role: 'Mechanic', avatar: 'SC', status: 'available', activeRequests: 1 },
-        { id: 5, name: 'David Lee', role: 'Apprentice', avatar: 'DL', status: 'busy', activeRequests: 2 },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Electricians Team',
-      specialization: 'Electrical Systems & Power',
-      memberCount: 4,
-      activeRequests: 5,
-      completedThisMonth: 18,
-      members: [
-        { id: 6, name: 'Sarah Wilson', role: 'Lead Electrician', avatar: 'SW', status: 'busy', activeRequests: 2 },
-        { id: 7, name: 'Jane Smith', role: 'Electrician', avatar: 'JS', status: 'available', activeRequests: 1 },
-        { id: 8, name: 'Robert Davis', role: 'Electrician', avatar: 'RD', status: 'busy', activeRequests: 2 },
-        { id: 9, name: 'Emily White', role: 'Apprentice', avatar: 'EW', status: 'available', activeRequests: 0 },
-      ],
-    },
-    {
-      id: 3,
-      name: 'IT Support Team',
-      specialization: 'Computers & Network Equipment',
-      memberCount: 3,
-      activeRequests: 3,
-      completedThisMonth: 32,
-      members: [
-        { id: 10, name: 'Alex Turner', role: 'IT Manager', avatar: 'AT', status: 'available', activeRequests: 0 },
-        { id: 11, name: 'Chris Martin', role: 'IT Technician', avatar: 'CM', status: 'busy', activeRequests: 2 },
-        { id: 12, name: 'Lisa Anderson', role: 'IT Technician', avatar: 'LA', status: 'available', activeRequests: 1 },
-      ],
-    },
-    {
-      id: 4,
-      name: 'HVAC Team',
-      specialization: 'Climate Control Systems',
-      memberCount: 3,
-      activeRequests: 4,
-      completedThisMonth: 15,
-      members: [
-        { id: 13, name: 'Paul Martinez', role: 'HVAC Specialist', avatar: 'PM', status: 'busy', activeRequests: 2 },
-        { id: 14, name: 'Kevin Brown', role: 'HVAC Technician', avatar: 'KB', status: 'busy', activeRequests: 1 },
-        { id: 15, name: 'Mark Taylor', role: 'HVAC Technician', avatar: 'MT', status: 'available', activeRequests: 1 },
-      ],
-    },
-  ];
+  // Load teams on mount
+  useEffect(() => {
+    loadTeams();
+  }, []);
 
-  const currentTeam = teams.find(t => t.id === selectedTeam);
+  // Load team details when selected team changes
+  useEffect(() => {
+    if (selectedTeam) {
+      loadTeamDetails(selectedTeam);
+    } else {
+      setCurrentTeamDetails(null);
+    }
+  }, [selectedTeam]);
+
+  const loadTeams = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getTeams();
+      setTeams(data);
+      // Auto-select first team if available
+      if (data.length > 0 && !selectedTeam) {
+        setSelectedTeam(data[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load teams:', error);
+      alert('Failed to load teams');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTeamDetails = async (teamId: number) => {
+    try {
+      const data = await api.getTeamById(teamId);
+      setCurrentTeamDetails(data);
+    } catch (error) {
+      console.error('Failed to load team details:', error);
+      alert('Failed to load team details');
+    }
+  };
 
   // Handlers
-  const handleAddTeam = (data: TeamFormData) => {
-    console.log('New team data:', data);
-    // TODO: Send to backend API
-    setIsAddTeamModalOpen(false);
+  const handleAddTeam = async (data: TeamFormData) => {
+    try {
+      await api.createTeam({
+        name: data.name,
+        specialization: data.specialization,
+        is_active: true,
+      });
+      setIsAddTeamModalOpen(false);
+      await loadTeams();
+    } catch (error) {
+      console.error('Failed to create team:', error);
+      alert('Failed to create team');
+    }
   };
 
-  const handleEditTeam = (data: TeamFormData) => {
-    console.log('Updated team data:', data);
-    // TODO: Send to backend API
-    setIsEditTeamModalOpen(false);
+  const handleEditTeam = async (data: TeamFormData) => {
+    if (!selectedTeam) return;
+    try {
+      await api.updateTeam(selectedTeam, {
+        name: data.name,
+        specialization: data.specialization,
+        is_active: true,
+      });
+      setIsEditTeamModalOpen(false);
+      await loadTeams();
+      await loadTeamDetails(selectedTeam);
+    } catch (error) {
+      console.error('Failed to update team:', error);
+      alert('Failed to update team');
+    }
   };
 
-  const handleDeleteTeam = () => {
-    console.log('Deleting team:', selectedTeam);
-    // TODO: Send to backend API
-    setIsDeleteTeamDialogOpen(false);
-    setSelectedTeam(null);
+  const handleDeleteTeam = async () => {
+    if (!selectedTeam) return;
+    try {
+      await api.deleteTeam(selectedTeam);
+      setIsDeleteTeamDialogOpen(false);
+      setSelectedTeam(null);
+      await loadTeams();
+    } catch (error) {
+      console.error('Failed to delete team:', error);
+      alert('Failed to delete team');
+    }
   };
 
-  const handleAddMember = (data: MemberFormData) => {
-    console.log('New member data:', data, 'for team:', selectedTeam);
-    // TODO: Send to backend API
-    setIsAddMemberModalOpen(false);
+  const handleAddMember = async (data: MemberFormData) => {
+    if (!selectedTeam) return;
+    try {
+      await api.addTeamMember(selectedTeam, {
+        user_id: parseInt(data.userId),
+        role: data.role,
+      });
+      setIsAddMemberModalOpen(false);
+      await loadTeamDetails(selectedTeam);
+      await loadTeams();
+    } catch (error) {
+      console.error('Failed to add member:', error);
+      alert('Failed to add member');
+    }
   };
 
   const handleAssignTask = (requestId: string) => {
     console.log('Assigning request:', requestId, 'to member:', assignTaskMember?.id);
-    // TODO: Send to backend API
+    // TODO: Implement assign task API
     setAssignTaskMember(null);
   };
+
+  // Helper to normalize team data from API
+  const normalizeTeam = (team: Team) => ({
+    ...team,
+    memberCount: team.member_count || team.memberCount || 0,
+    activeRequests: team.active_requests || team.activeRequests || 0,
+    completedThisMonth: team.completed_requests || team.completedThisMonth || 0,
+  });
+
+  // Helper to normalize member data from API
+  const normalizeMember = (member: TeamMember) => {
+    const initials = member.name
+      ? member.name.split(' ').map(n => n[0]).join('').toUpperCase()
+      : member.email?.substring(0, 2).toUpperCase() || 'U';
+    
+    return {
+      ...member,
+      name: member.name || member.email || 'Unknown',
+      avatar: member.avatar || initials,
+      status: member.status || 'available' as const,
+      activeRequests: member.active_requests || member.activeRequests || 0,
+    };
+  };
+
+  const currentTeam = currentTeamDetails ? normalizeTeam(currentTeamDetails) : null;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -167,48 +221,58 @@ export default function TeamManagement() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Teams List - Sidebar */}
-        <div className="lg:col-span-1">
-          <Card title="Teams">
-            <div className="space-y-2">
-              {teams.map((team) => (
-                <button
-                  key={team.id}
-                  onClick={() => setSelectedTeam(team.id)}
-                  className={`w-full text-left p-4 rounded-lg transition-all ${
-                    selectedTeam === team.id
-                      ? 'bg-blue-50 border-2 border-blue-300 shadow-sm'
-                      : 'bg-white border border-gray-200 hover:border-blue-200 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <FiUsers className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{team.name}</h3>
-                      <p className="text-xs text-gray-500">{team.memberCount} members</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">Active: {team.activeRequests}</span>
-                    <Badge variant="success" size="sm">
-                      {team.completedThisMonth}
-                    </Badge>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+      {loading ? (
+        <Card>
+          <div className="p-12 text-center">
+            <p className="text-gray-600">Loading teams...</p>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Teams List - Sidebar */}
+          <div className="lg:col-span-1">
+            <Card title="Teams">
+              <div className="space-y-2">
+                {teams.map((team) => {
+                  const normalizedTeam = normalizeTeam(team);
+                  return (
+                    <button
+                      key={team.id}
+                      onClick={() => setSelectedTeam(team.id)}
+                      className={`w-full text-left p-4 rounded-lg transition-all ${
+                        selectedTeam === team.id
+                          ? 'bg-blue-50 border-2 border-blue-300 shadow-sm'
+                          : 'bg-white border border-gray-200 hover:border-blue-200 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <FiUsers className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{team.name}</h3>
+                          <p className="text-xs text-gray-500">{normalizedTeam.memberCount} members</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">Active: {normalizedTeam.activeRequests}</span>
+                        <Badge variant="success" size="sm">
+                          {normalizedTeam.completedThisMonth}
+                        </Badge>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
 
-        {/* Team Details - Main Content */}
-        <div className="lg:col-span-3">
-          {currentTeam ? (
-            <>
-              {/* Team Header Card */}
-              <Card className="mb-6">
+          {/* Team Details - Main Content */}
+          <div className="lg:col-span-3">
+            {currentTeam ? (
+              <>
+                {/* Team Header Card */}
+                <Card className="mb-6">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
@@ -264,33 +328,59 @@ export default function TeamManagement() {
                 }
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentTeam.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all"
-                    >
-                      {/* Member Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-full ${getAvatarColor(member.avatar)} flex items-center justify-center text-white text-lg font-semibold`}>
-                            {member.avatar}
+                  {currentTeamDetails?.members?.map((member) => {
+                    const normalizedMember = normalizeMember(member);
+                    return (
+                      <div
+                        key={member.id}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all"
+                      >
+                        {/* Member Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-full ${getAvatarColor(normalizedMember.avatar)} flex items-center justify-center text-white text-lg font-semibold`}>
+                              {normalizedMember.avatar}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{normalizedMember.name}</h4>
+                              <p className="text-sm text-gray-600">{member.role}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                            <p className="text-sm text-gray-600">{member.role}</p>
-                          </div>
+                          <Badge variant={getStatusColor(normalizedMember.status)} size="sm">
+                            {normalizedMember.status}
+                          </Badge>
                         </div>
-                        <Badge variant={getStatusColor(member.status)} size="sm">
-                          {member.status}
-                        </Badge>
-                      </div>
 
-                      {/* Member Stats */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                        <span className="text-sm text-gray-600">Active Requests</span>
-                        <span className={`text-lg font-bold ${
-                          member.activeRequests > 0 ? 'text-yellow-600' : 'text-green-600'
-                        }`}>
+                        {/* Member Stats */}
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                          <span className="text-sm text-gray-600">Active Requests</span>
+                          <span className={`text-lg font-bold ${
+                            normalizedMember.activeRequests > 0 ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {normalizedMember.activeRequests}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2 mt-4">
+                          <button 
+                            onClick={() => setViewProfileMember(normalizedMember)}
+                            className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          >
+                            View Profile
+                          </button>
+                          <button 
+                            onClick={() => setAssignTaskMember(normalizedMember)}
+                            className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          >
+                            Assign Task
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
                           {member.activeRequests}
                         </span>
                       </div>
