@@ -8,7 +8,7 @@ interface WorkCenterFormProps {
   workCenter?: WorkCenterFormData;
   mode?: 'add' | 'edit';
   categories: string[];
-  teams: string[];
+  teams: Array<{ id: string; name: string }>;
 }
 
 export interface WorkCenterFormData {
@@ -60,15 +60,6 @@ export default function WorkCenterForm({
     }
     if (!formData.category) {
       newErrors.category = 'Category is required';
-    }
-    if (!formData.location.trim()) {
-      newErrors.location = 'Location is required';
-    }
-    if (!formData.department.trim()) {
-      newErrors.department = 'Department is required';
-    }
-    if (!formData.assignedTeam) {
-      newErrors.assignedTeam = 'Assigned team is required';
     }
 
     setErrors(newErrors);
@@ -146,7 +137,7 @@ export default function WorkCenterForm({
 
         <div>
           <label htmlFor="department" className={labelClasses}>
-            Department <span className="text-red-500">*</span>
+            Department
           </label>
           <input
             type="text"
@@ -155,7 +146,7 @@ export default function WorkCenterForm({
             value={formData.department}
             onChange={handleChange}
             className={inputClasses}
-            placeholder="Production"
+            placeholder="Production (optional)"
           />
           {errors.department && <p className={errorClasses}>{errors.department}</p>}
         </div>
@@ -164,7 +155,7 @@ export default function WorkCenterForm({
       {/* Location */}
       <div>
         <label htmlFor="location" className={labelClasses}>
-          Location <span className="text-red-500">*</span>
+          Location
         </label>
         <input
           type="text"
@@ -173,7 +164,7 @@ export default function WorkCenterForm({
           value={formData.location}
           onChange={handleChange}
           className={inputClasses}
-          placeholder="Building 1, Floor 1"
+          placeholder="Building 1, Floor 1 (optional)"
         />
         {errors.location && <p className={errorClasses}>{errors.location}</p>}
       </div>
@@ -181,7 +172,7 @@ export default function WorkCenterForm({
       {/* Assigned Team */}
       <div>
         <label htmlFor="assignedTeam" className={labelClasses}>
-          Assigned Team <span className="text-red-500">*</span>
+          Assigned Team
         </label>
         <select
           id="assignedTeam"
@@ -190,9 +181,9 @@ export default function WorkCenterForm({
           onChange={handleChange}
           className={inputClasses}
         >
-          <option value="">Select Team</option>
+          <option value="">Select Team (optional)</option>
           {teams.map(team => (
-            <option key={team} value={team}>{team}</option>
+            <option key={team.id} value={team.id}>{team.name}</option>
           ))}
         </select>
         {errors.assignedTeam && <p className={errorClasses}>{errors.assignedTeam}</p>}

@@ -5,6 +5,7 @@ import dashboardRoutes from './dashboardRoutes';
 import teamRoutes from './teamRoutes';
 import authRoutes from './authRoutes';
 import equipmentRoutes from './equipmentRoutes';
+import workCenterRoutes from './workCenterRoutes';
 const router = Router();
 
 // Import routes (to be implemented)
@@ -16,6 +17,7 @@ const router = Router();
 router.use('/dashboard', dashboardRoutes);
 router.use('/equipment', equipmentRoutes);
 router.use('/teams', teamRoutes);
+router.use('/work-centers', workCenterRoutes);
 // router.use('/requests', requestRoutes);
 router.use('/auth', authRoutes);
 // router.use('/reports', reportRoutes);
