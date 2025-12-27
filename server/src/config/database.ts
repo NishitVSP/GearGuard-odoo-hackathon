@@ -38,3 +38,16 @@ export const closePool = async (): Promise<void> => {
     pool = null;
   }
 };
+
+/**
+ * Execute a SQL query
+ */
+export const query = async <T>(sql: string, params?: any[]): Promise<T> => {
+  const connection = await getPool().getConnection();
+  try {
+    const [rows] = await connection.execute(sql, params);
+    return rows as T;
+  } finally {
+    connection.release();
+  }
+};

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import dashboardRoutes from './dashboardRoutes';
+import dashboardTestRoutes from './dashboardTestRoutes';
 
 const router = Router();
 
@@ -10,6 +12,8 @@ const router = Router();
 // import reportRoutes from './reportRoutes';
 
 // Use routes
+router.use('/dashboard', dashboardRoutes);
+router.use('/dashboard-test', dashboardTestRoutes); // Test routes without auth
 // router.use('/equipment', equipmentRoutes);
 // router.use('/teams', teamRoutes);
 // router.use('/requests', requestRoutes);
@@ -17,7 +21,7 @@ const router = Router();
 // router.use('/reports', reportRoutes);
 
 // Placeholder endpoint
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json({ message: 'GearGuard API v1.0.0' });
 });
 
