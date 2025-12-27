@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -17,6 +17,12 @@ import {
   FiMapPin,
   FiPackage
 } from 'react-icons/fi';
+import { 
+  getEquipmentById, 
+  updateEquipment, 
+  deleteEquipment,
+  Equipment 
+} from '../services/api';
 
 export default function EquipmentDetail() {
   const { id } = useParams();
@@ -24,46 +30,112 @@ export default function EquipmentDetail() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
+  const [equipment, setEquipment] = useState<Equipment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data
-  const equipment = {
-    id: 1,
-    name: 'CNC Machine #5',
-    serialNumber: 'CNC-2024-005',
-    category: 'CNC Machines',
-    status: 'operational',
-    department: 'Production',
-    assignedTo: 'John Doe',
-    assignedTeam: 'Mechanics Team',
-    assignedTechnician: 'Mike Johnson',
-    location: 'Building A, Floor 2, Bay 5',
-    purchaseDate: '2024-01-15',
-    warrantyExpiry: '2027-01-15',
-    lastMaintenance: '2024-12-15',
-    nextMaintenance: '2025-01-15',
+  useEffect(() => {
+    if (id) {
+      loadEquipment();
+    }
+  }, [id]);
+
+  const loadEquipment = async () => {
+    try {
+      setLoading(true);
+      const data = await getEquipmentById(parseInt(id!, 10));
+      setEquipment(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading equipment:', err);
+      setError('Failed to load equipment details');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Convert equipment data to form format
+  const handleEditEquipment = async (data: EquipmentFormData) => {
+    try {
+      if (!equipment) return;
+
+      await updateEquipment(equipment.id, {
+        name: data.name,
+        location: data.usedInLocation,
+      });
+      
+      setIsEditModalOpen(false);
+      loadEquipment();
+    } catch (err) {
+      console.error('Error updating equipment:', err);
+      alert('Failed to update equipment');
+    }
+  };
+
+  const handleDeleteEquipment = async () => {
+    try {
+      if (!equipment) return;
+      
+      await deleteEquipment(equipment.id);
+      setIsDeleteDialogOpen(false);
+      navigate('/equipment');
+    } catch (err) {
+      console.error('Error deleting equipment:', err);
+      alert('Failed to delete equipment');
+    }
+  };
+
+  const handleCreateRequest = (data: any) => {
+    console.log('Creating maintenance request:', data);
+    // TODO: Send request to backend API
+    setIsCreateRequestModalOpen(false);
+    loadEquipment(); // Reload to show new request
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading equipment details...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !equipment) {
+    return (
+      <Layout>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Equipment Not Found</h3>
+          <p className="text-gray-600 mb-6">{error || 'The requested equipment could not be found'}</p>
+          <Button variant="primary" onClick={() => navigate('/equipment')}>
+            Back to Equipment List
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
   const equipmentFormData: EquipmentFormData = {
     name: equipment.name,
-    equipmentCategory: equipment.category,
+    equipmentCategory: equipment.category_name || '',
     company: '',
     usedBy: 'Employee',
-    maintenanceTeam: equipment.assignedTeam,
-    assignedDate: equipment.purchaseDate,
-    technician: equipment.assignedTechnician,
-    employee: equipment.assignedTo,
+    maintenanceTeam: equipment.team_name || '',
+    assignedDate: equipment.purchase_date || '',
+    technician: '',
+    employee: '',
     scrapDate: '',
-    usedInLocation: equipment.location,
-    workCenter: equipment.department,
+    usedInLocation: equipment.location || '',
+    workCenter: equipment.department_name || '',
   };
 
-  const handleEditEquipment = (data: EquipmentFormData) => {
-    console.log('Updated equipment data:', data);
-    // TODO: Send updated data to backend API
-    setIsEditModalOpen(false);
-  };
+  const activeRequests = (equipment.maintenance_requests || []).filter(
+    (req: any) => ['new', 'in_progress', 'assigned'].includes(req.status)
+  );
 
+<<<<<<< Updated upstream
   const handleDeleteEquipment = () => {
     console.log('Deleting equipment:', id);
     // TODO: Send delete request to backend API
@@ -128,6 +200,11 @@ export default function EquipmentDetail() {
       priority: 'medium',
     },
   ];
+=======
+  const maintenanceHistory = (equipment.maintenance_requests || []).filter(
+    (req: any) => req.status === 'completed'
+  ).slice(0, 10);
+>>>>>>> Stashed changes
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -141,8 +218,9 @@ export default function EquipmentDetail() {
   const getRequestStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'primary';
+      case 'assigned': return 'primary';
       case 'in_progress': return 'warning';
-      case 'repaired': return 'success';
+      case 'completed': return 'success';
       default: return 'default';
     }
   };
@@ -169,7 +247,7 @@ export default function EquipmentDetail() {
           </button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{equipment.name}</h1>
-            <p className="text-gray-600 mt-1">{equipment.serialNumber}</p>
+            <p className="text-gray-600 mt-1">{equipment.equipment_code}</p>
           </div>
           <Badge variant={getStatusColor(equipment.status)} size="md">
             {equipment.status.toUpperCase()}
@@ -197,49 +275,53 @@ export default function EquipmentDetail() {
                     <FiPackage className="w-4 h-4" />
                     Category
                   </label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.category}</p>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.category_name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <FiUser className="w-4 h-4" />
                     Department
                   </label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.department}</p>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.department_name || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <FiUser className="w-4 h-4" />
-                    Assigned To
+                    Team
                   </label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.assignedTo}</p>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.team_name || 'Unassigned'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Assigned Team</label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.assignedTeam}</p>
+                  <label className="text-sm font-medium text-gray-600">Serial Number</label>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.serial_number || 'N/A'}</p>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Default Technician</label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.assignedTechnician}</p>
+                  <label className="text-sm font-medium text-gray-600">Model</label>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.model || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <FiMapPin className="w-4 h-4" />
                     Location
                   </label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.location}</p>
+                  <p className="mt-1 text-gray-900 font-medium">{equipment.location || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <FiCalendar className="w-4 h-4" />
                     Purchase Date
                   </label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.purchaseDate}</p>
+                  <p className="mt-1 text-gray-900 font-medium">
+                    {equipment.purchase_date ? new Date(equipment.purchase_date).toLocaleDateString() : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Warranty Expiry</label>
-                  <p className="mt-1 text-gray-900 font-medium">{equipment.warrantyExpiry}</p>
+                  <p className="mt-1 text-gray-900 font-medium">
+                    {equipment.warranty_expiry ? new Date(equipment.warranty_expiry).toLocaleDateString() : 'N/A'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -264,7 +346,7 @@ export default function EquipmentDetail() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="font-semibold text-gray-900">{request.id}</span>
+                          <span className="font-semibold text-gray-900">{request.request_number}</span>
                           <Badge variant={getRequestStatusColor(request.status)} size="sm">
                             {request.status.replace('_', ' ').toUpperCase()}
                           </Badge>
@@ -274,11 +356,11 @@ export default function EquipmentDetail() {
                         </div>
                         <p className="text-gray-900 font-medium mb-1">{request.subject}</p>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span>Type: {request.type}</span>
+                          <span>Type: {request.request_type}</span>
                           <span>•</span>
-                          <span>Technician: {request.technician}</span>
+                          <span>Technician: {request.technician_name || 'Unassigned'}</span>
                           <span>•</span>
-                          <span>Created: {request.createdDate}</span>
+                          <span>Created: {new Date(request.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
@@ -302,27 +384,27 @@ export default function EquipmentDetail() {
                 >
                   <div className="flex-shrink-0 w-20 text-center">
                     <div className="text-sm font-semibold text-blue-600">
-                      {new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(record.completed_at || record.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {new Date(record.date).getFullYear()}
+                      {new Date(record.completed_at || record.created_at).getFullYear()}
                     </div>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="font-semibold text-gray-900">{record.id}</span>
-                      <Badge variant={record.type === 'preventive' ? 'primary' : 'warning'} size="sm">
-                        {record.type.toUpperCase()}
+                      <span className="font-semibold text-gray-900">{record.request_number}</span>
+                      <Badge variant={record.request_type === 'preventive' ? 'primary' : 'warning'} size="sm">
+                        {record.request_type.toUpperCase()}
                       </Badge>
                       <Badge variant="success" size="sm">
-                        {record.status.toUpperCase()}
+                        COMPLETED
                       </Badge>
                     </div>
-                    <p className="text-gray-900 mb-1">{record.description}</p>
+                    <p className="text-gray-900 mb-1">{record.subject}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span>Technician: {record.technician}</span>
+                      <span>Technician: {record.technician_name || 'N/A'}</span>
                       <span>•</span>
-                      <span>Duration: {record.duration}</span>
+                      <span>Duration: {record.duration_hours ? `${record.duration_hours}h` : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -349,8 +431,8 @@ export default function EquipmentDetail() {
                 <p className="text-sm text-green-700 font-medium">Completed Jobs</p>
               </div>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-3xl font-bold text-blue-600 mb-1">
-                  {equipment.nextMaintenance}
+                <div className="text-lg font-bold text-blue-600 mb-1">
+                  Not scheduled
                 </div>
                 <p className="text-sm text-blue-700 font-medium">Next Maintenance</p>
               </div>
@@ -362,19 +444,23 @@ export default function EquipmentDetail() {
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
                 <span className="text-sm text-gray-600">Purchase Date</span>
-                <span className="text-sm font-medium text-gray-900">{equipment.purchaseDate}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {equipment.purchase_date ? new Date(equipment.purchase_date).toLocaleDateString() : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
                 <span className="text-sm text-gray-600">Warranty Expires</span>
-                <span className="text-sm font-medium text-gray-900">{equipment.warrantyExpiry}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {equipment.warranty_expiry_date ? new Date(equipment.warranty_expiry_date).toLocaleDateString() : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-200">
                 <span className="text-sm text-gray-600">Last Service</span>
-                <span className="text-sm font-medium text-gray-900">{equipment.lastMaintenance}</span>
+                <span className="text-sm font-medium text-gray-900">N/A</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm text-gray-600">Next Service</span>
-                <span className="text-sm font-medium text-blue-600">{equipment.nextMaintenance}</span>
+                <span className="text-sm font-medium text-blue-600">Not scheduled</span>
               </div>
             </div>
           </Card>
