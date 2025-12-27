@@ -50,4 +50,25 @@ router.get(
   dashboardController.getUpcomingMaintenance.bind(dashboardController)
 );
 
+/**
+ * @route   GET /api/dashboard/critical-equipment
+ * @desc    Get critical equipment with health < 30%
+ * @access  Private (requires authentication)
+ */
+router.get('/critical-equipment', dashboardController.getCriticalEquipment.bind(dashboardController));
+
+/**
+ * @route   GET /api/dashboard/technician-load
+ * @desc    Get technician workload statistics
+ * @access  Private (requires authentication)
+ */
+router.get('/technician-load', dashboardController.getTechnicianLoad.bind(dashboardController));
+
+/**
+ * @route   GET /api/dashboard/open-requests
+ * @desc    Get open requests summary (pending and overdue)
+ * @access  Private (requires authentication)
+ */
+router.get('/open-requests', dashboardController.getOpenRequestsSummary.bind(dashboardController));
+
 export default router;

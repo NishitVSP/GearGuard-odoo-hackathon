@@ -7,6 +7,7 @@ interface AddEquipmentFormProps {
   onCancel: () => void;
   equipment?: EquipmentFormData; // Optional data for editing mode
   mode?: 'add' | 'edit'; // Form mode
+  categories?: Array<{id: number; name: string}>; // Categories from API
 }
 
 export interface EquipmentFormData {
@@ -23,22 +24,20 @@ export interface EquipmentFormData {
   workCenter: string;
 }
 
-export default function AddEquipmentForm({ onSubmit, onCancel, equipment, mode = 'add' }: AddEquipmentFormProps) {
-  const [formData, setFormData] = useState<EquipmentFormData>(
-    equipment || {
-      name: '',
-      equipmentCategory: '',
-      company: '',
-      usedBy: 'Employee',
-      maintenanceTeam: '',
-      assignedDate: '',
-      technician: '',
-      employee: '',
-      scrapDate: '',
-      usedInLocation: '',
-      workCenter: '',
-    }
-  );
+export default function AddEquipmentForm({ onSubmit, onCancel, equipment, mode = 'add', categories = [] }: AddEquipmentFormProps) {
+  const [formData, setFormData] = useState<EquipmentFormData>({
+    name: equipment?.name || '',
+    equipmentCategory: equipment?.equipmentCategory || '',
+    company: equipment?.company || '',
+    usedBy: equipment?.usedBy || 'Employee',
+    maintenanceTeam: equipment?.maintenanceTeam || '',
+    assignedDate: equipment?.assignedDate || '',
+    technician: equipment?.technician || '',
+    employee: equipment?.employee || '',
+    scrapDate: equipment?.scrapDate || '',
+    usedInLocation: equipment?.usedInLocation || '',
+    workCenter: equipment?.workCenter || '',
+  });
 
   const [errors, setErrors] = useState<Partial<Record<keyof EquipmentFormData, string>>>({});
 
@@ -108,14 +107,23 @@ export default function AddEquipmentForm({ onSubmit, onCancel, equipment, mode =
             onChange={handleChange}
             className={inputClasses}
           >
-            <option value="">Monitors</option>
-            <option value="CNC Machines">CNC Machines</option>
-            <option value="Vehicles">Vehicles</option>
-            <option value="HVAC Equipment">HVAC Equipment</option>
-            <option value="Computers">Computers</option>
-            <option value="Power Systems">Power Systems</option>
-            <option value="Tools">Tools</option>
-            <option value="Other">Other</option>
+            <option value="">Select Category</option>
+            {categories.length > 0 ? (
+              categories.map(cat => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="CNC Machines">CNC Machines</option>
+                <option value="Computers">Computers</option>
+                <option value="Vehicles">Vehicles</option>
+                <option value="HVAC">HVAC</option>
+                <option value="Safety Equipment">Safety Equipment</option>
+                <option value="Office Equipment">Office Equipment</option>
+              </>
+            )}
           </select>
           {errors.equipmentCategory && <p className={errorClasses}>{errors.equipmentCategory}</p>}
         </div>

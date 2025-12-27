@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
@@ -8,6 +8,15 @@ import Modal from '../components/common/Modal';
 import AddEquipmentForm, { EquipmentFormData } from '../components/equipment/AddEquipmentForm';
 import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
 import { FiPlus, FiSearch, FiFilter, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { 
+  getEquipment, 
+  createEquipment, 
+  updateEquipment, 
+  deleteEquipment,
+  getEquipmentCategories,
+  Equipment,
+  CreateEquipmentDto 
+} from '../services/api';
 
 export default function EquipmentList() {
   const navigate = useNavigate();
@@ -15,130 +24,146 @@ export default function EquipmentList() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<any>(null);
-  const [deletingEquipment, setDeletingEquipment] = useState<any>(null);
+  const [deletingEquipment, setDeletingEquipment] = useState<Equipment | null>(null);
+  const [equipment, setEquipment] = useState<Equipment[]>([]);
+  const [categories, setCategories] = useState<Array<{id: number; name: string}>>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddEquipment = (data: EquipmentFormData) => {
-    console.log('New equipment data:', data);
-    // TODO: Send data to backend API
-    setIsModalOpen(false);
+  // Load equipment data
+  useEffect(() => {
+    loadEquipment();
+  }, [searchTerm, filterCategory]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadEquipment = async () => {
+    try {
+      setLoading(true);
+      const response = await getEquipment({
+        search: searchTerm,
+        category: filterCategory === 'all' ? '' : filterCategory,
+        limit: 100,
+      });
+      setEquipment(response.items);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading equipment:', err);
+      setError('Failed to load equipment');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditEquipment = (data: EquipmentFormData) => {
-    console.log('Updated equipment data:', data);
-    // TODO: Send updated data to backend API
-    setEditingEquipment(null);
+  const loadCategories = async () => {
+    try {
+      const cats = await getEquipmentCategories();
+      setCategories(cats);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
   };
 
-  const handleDeleteEquipment = () => {
-    console.log('Deleting equipment:', deletingEquipment?.id);
-    // TODO: Send delete request to backend API
-    setDeletingEquipment(null);
+  const handleAddEquipment = async (data: EquipmentFormData) => {
+    try {
+      const category = categories.find(c => c.name === data.equipmentCategory);
+      if (!category) {
+        alert('Please select a valid category');
+        return;
+      }
+
+      const equipmentData: CreateEquipmentDto = {
+        name: data.name,
+        equipment_code: `EQ-${Date.now()}`,
+        category_id: category.id,
+        assigned_team_id: 1, // Default team
+        location: data.usedInLocation,
+        status: 'operational',
+        manufacturer: data.company || undefined,
+        model: data.technician || undefined,
+        serial_number: data.employee || undefined,
+        purchase_date: data.assignedDate || undefined,
+        warranty_expiry_date: data.scrapDate || undefined,
+      };
+      
+      await createEquipment(equipmentData);
+      setIsModalOpen(false);
+      loadEquipment();
+    } catch (err) {
+      console.error('Error creating equipment:', err);
+      alert('Failed to create equipment');
+    }
   };
 
-  const openEditModal = (item: any) => {
+  const handleEditEquipment = async (data: EquipmentFormData) => {
+    try {
+      if (!editingEquipment) return;
+
+      const category = categories.find(c => c.name === data.equipmentCategory);
+      
+      const equipmentData: Partial<CreateEquipmentDto> = {
+        name: data.name,
+        location: data.usedInLocation,
+        manufacturer: data.company,
+        model: data.technician,
+        serial_number: data.employee,
+        purchase_date: data.assignedDate || undefined,
+        warranty_expiry_date: data.scrapDate || undefined,
+        ...(category && { category_id: category.id }),
+      };
+      
+      await updateEquipment(editingEquipment.id, equipmentData);
+      setEditingEquipment(null);
+      loadEquipment();
+    } catch (err) {
+      console.error('Error updating equipment:', err);
+      alert('Failed to update equipment');
+    }
+  };
+
+  const handleDeleteEquipment = async () => {
+    try {
+      if (!deletingEquipment) return;
+      
+      await deleteEquipment(deletingEquipment.id);
+      setDeletingEquipment(null);
+      loadEquipment();
+    } catch (err) {
+      console.error('Error deleting equipment:', err);
+      alert('Failed to delete equipment');
+    }
+  };
+
+  const openEditModal = (item: Equipment) => {
     const equipmentData: EquipmentFormData = {
       name: item.name,
-      equipmentCategory: item.category,
-      company: '',
+      equipmentCategory: item.category_name || '',
+      company: item.manufacturer || '',
       usedBy: 'Employee',
-      maintenanceTeam: '',
-      assignedDate: '',
-      technician: '',
-      employee: item.assignedTo,
-      scrapDate: '',
-      usedInLocation: '',
-      workCenter: item.department,
+      maintenanceTeam: item.team_name || '',
+      assignedDate: item.purchase_date ? item.purchase_date.split('T')[0] : '',
+      technician: item.model || '',
+      employee: item.serial_number || '',
+      scrapDate: item.warranty_expiry_date ? item.warranty_expiry_date.split('T')[0] : '',
+      usedInLocation: item.location || '',
+      workCenter: item.department_name || '',
     };
     setEditingEquipment({ ...item, formData: equipmentData });
   };
 
-  // Mock data
-  const equipment = [
-    {
-      id: 1,
-      name: 'CNC Machine #5',
-      serialNumber: 'CNC-2024-005',
-      category: 'CNC Machines',
-      status: 'operational',
-      department: 'Production',
-      assignedTo: 'John Doe',
-      lastMaintenance: '2024-12-15',
-      openRequests: 2,
-    },
-    {
-      id: 2,
-      name: 'Forklift #12',
-      serialNumber: 'FLT-2023-012',
-      category: 'Vehicles',
-      status: 'operational',
-      department: 'Warehouse',
-      assignedTo: 'Jane Smith',
-      lastMaintenance: '2024-12-20',
-      openRequests: 1,
-    },
-    {
-      id: 3,
-      name: 'Air Compressor',
-      serialNumber: 'CMP-2022-008',
-      category: 'HVAC Equipment',
-      status: 'maintenance',
-      department: 'Facilities',
-      assignedTo: 'Mike Johnson',
-      lastMaintenance: '2024-11-30',
-      openRequests: 3,
-    },
-    {
-      id: 4,
-      name: 'Lathe Machine #3',
-      serialNumber: 'LTH-2024-003',
-      category: 'CNC Machines',
-      status: 'operational',
-      department: 'Production',
-      assignedTo: 'Sarah Wilson',
-      lastMaintenance: '2024-12-10',
-      openRequests: 0,
-    },
-    {
-      id: 5,
-      name: 'Dell Workstation',
-      serialNumber: 'WKS-2024-042',
-      category: 'Computers',
-      status: 'operational',
-      department: 'IT',
-      assignedTo: 'Tom Brown',
-      lastMaintenance: '2024-12-01',
-      openRequests: 0,
-    },
-    {
-      id: 6,
-      name: 'Generator #1',
-      serialNumber: 'GEN-2021-001',
-      category: 'Power Systems',
-      status: 'operational',
-      department: 'Facilities',
-      assignedTo: 'Unassigned',
-      lastMaintenance: '2024-12-22',
-      openRequests: 0,
-    },
-  ];
-
-  const categories = ['all', 'CNC Machines', 'Vehicles', 'HVAC Equipment', 'Computers', 'Power Systems'];
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'operational': return 'success';
-      case 'maintenance': return 'warning';
-      case 'down': return 'danger';
+      case 'under_maintenance': return 'warning';
+      case 'broken': return 'danger';
+      case 'scrapped': return 'default';
       default: return 'default';
     }
   };
 
-  const filteredEquipment = equipment.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredEquipment = equipment;
 
   return (
     <Layout>
@@ -152,6 +177,13 @@ export default function EquipmentList() {
           Add Equipment
         </Button>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -181,9 +213,10 @@ export default function EquipmentList() {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
               >
+                <option value="all">All Categories</option>
                 {categories.map(cat => (
-                  <option key={cat} value={cat}>
-                    {cat === 'all' ? 'All Categories' : cat}
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -192,94 +225,114 @@ export default function EquipmentList() {
         </div>
       </Card>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading equipment...</p>
+        </div>
+      )}
+
       {/* Equipment Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEquipment.map((item) => (
-          <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
-                  <p className="text-sm text-gray-500">{item.serialNumber}</p>
+      {!loading && filteredEquipment.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEquipment.map((item) => (
+            <Card key={item.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.name}</h3>
+                    <p className="text-sm text-gray-500">{item.equipment_code}</p>
+                  </div>
+                  <Badge variant={getStatusColor(item.status)}>
+                    {item.status}
+                  </Badge>
                 </div>
-                <Badge variant={getStatusColor(item.status)}>
-                  {item.status}
-                </Badge>
-              </div>
 
-              {/* Details */}
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Category:</span>
-                  <span className="font-medium text-gray-900">{item.category}</span>
+                {/* Details */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Category:</span>
+                    <span className="font-medium text-gray-900">{item.category_name}</span>
+                  </div>
+                  {item.team_name && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Team:</span>
+                      <span className="font-medium text-gray-900">{item.team_name}</span>
+                    </div>
+                  )}
+                  {item.location && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="font-medium text-gray-900">{item.location}</span>
+                    </div>
+                  )}
+                  {item.purchase_date && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Purchased:</span>
+                      <span className="font-medium text-gray-900">{new Date(item.purchase_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Department:</span>
-                  <span className="font-medium text-gray-900">{item.department}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Assigned To:</span>
-                  <span className="font-medium text-gray-900">{item.assignedTo}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Last Service:</span>
-                  <span className="font-medium text-gray-900">{item.lastMaintenance}</span>
-                </div>
-              </div>
 
-              {/* Smart Button */}
-              <button
-                onClick={() => navigate(`/equipment/${item.id}`)}
-                className={`w-full px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                  item.openRequests > 0
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-              >
-                {item.openRequests > 0 ? (
-                  <span className="flex items-center justify-center">
-                    🔧 {item.openRequests} Open Request{item.openRequests > 1 ? 's' : ''}
-                  </span>
-                ) : (
-                  <span>View Details</span>
-                )}
-              </button>
-
-              {/* Actions */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditModal(item);
-                  }}
-                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                {/* Smart Button */}
+                <button
+                  onClick={() => navigate(`/equipment/${item.id}`)}
+                  className={`w-full px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                    (item.open_requests || 0) > 0
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
                 >
-                  <FiEdit className="inline mr-1" /> Edit
+                  {(item.open_requests || 0) > 0 ? (
+                    <span className="flex items-center justify-center">
+                      🔧 {item.open_requests} Open Request{(item.open_requests || 0) > 1 ? 's' : ''}
+                    </span>
+                  ) : (
+                    <span>View Details</span>
+                  )}
                 </button>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeletingEquipment(item);
-                  }}
-                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                >
-                  <FiTrash2 className="inline mr-1" /> Delete
-                </button>
+
+                {/* Actions */}
+                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(item);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                  >
+                    <FiEdit className="inline mr-1" /> Edit
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingEquipment(item);
+                    }}
+                    className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  >
+                    <FiTrash2 className="inline mr-1" /> Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredEquipment.length === 0 && (
+      {!loading && filteredEquipment.length === 0 && (
         <Card>
           <div className="p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No equipment found</h3>
-            <p className="text-gray-600 mb-6">Try adjusting your search or filters</p>
-            <Button variant="primary" icon={<FiPlus />}>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || filterCategory !== 'all' 
+                ? 'Try adjusting your search or filters' 
+                : 'Get started by adding your first equipment'}
+            </p>
+            <Button variant="primary" icon={<FiPlus />} onClick={() => setIsModalOpen(true)}>
               Add New Equipment
             </Button>
           </div>
@@ -296,6 +349,7 @@ export default function EquipmentList() {
         <AddEquipmentForm
           onSubmit={handleAddEquipment}
           onCancel={() => setIsModalOpen(false)}
+          categories={categories}
         />
       </Modal>
 
@@ -312,6 +366,7 @@ export default function EquipmentList() {
             mode="edit"
             onSubmit={handleEditEquipment}
             onCancel={() => setEditingEquipment(null)}
+            categories={categories}
           />
         )}
       </Modal>

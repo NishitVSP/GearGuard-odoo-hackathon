@@ -46,7 +46,101 @@ interface UpcomingMaintenanceRow extends RowDataPacket {
   technician_name: string | null;
 }
 
+interface CriticalEquipmentRow extends RowDataPacket {
+  id: number;
+  equipment_code: string;
+  name: string;
+  health_percentage: number;
+  status: string;
+  last_maintenance_date: Date | null;
+}
+
+interface TechnicianLoadRow extends RowDataPacket {
+  technician_id: number;
+  technician_name: string;
+  active_requests: number;
+  total_capacity: number;
+  utilization_percentage: number;
+}
+
 export class DashboardRepository {
+  /**
+   * Get critical equipment with health < 30%
+   * Health is calculated based on: status, days since last maintenance, and overdue maintenance requests
+   */
+  async getCriticalEquipment(): Promise<CriticalEquipmentRow[]> {
+    const sql = `
+      SELECT 
+        e.id,
+        e.equipment_code,
+        e.name,
+        e.status,
+        MAX(mr.completed_at) as last_maintenance_date,
+        -- Calculate health based on multiple factors
+        CASE 
+          WHEN e.status = 'broken' THEN 10
+          WHEN e.status = 'scrapped' THEN 0
+          WHEN e.status = 'under_maintenance' THEN 40
+          ELSE GREATEST(0, 100 - 
+            -- Subtract points for days since last maintenance (max 30 points)
+            LEAST(30, COALESCE(DATEDIFF(CURDATE(), MAX(mr.completed_at)), 90) / 3) -
+            -- Subtract points for open requests (10 points each, max 20)
+            LEAST(20, COUNT(CASE WHEN mr.stage IN ('new', 'in_progress') THEN 1 END) * 10) -
+            -- Subtract points for overdue requests (15 points each, max 30)
+            LEAST(30, COUNT(CASE WHEN mr.deadline < CURDATE() AND mr.stage NOT IN ('repaired', 'scrap') THEN 1 END) * 15)
+          )
+        END as health_percentage
+      FROM equipment e
+      LEFT JOIN maintenance_requests mr ON e.id = mr.equipment_id
+      WHERE e.status != 'scrapped'
+      GROUP BY e.id, e.equipment_code, e.name, e.status
+      HAVING health_percentage < 30
+      ORDER BY health_percentage ASC
+      LIMIT 10
+    `;
+    
+    return await query<CriticalEquipmentRow[]>(sql);
+  }
+
+  /**
+   * Get technician workload statistics
+   */
+  async getTechnicianLoad(): Promise<TechnicianLoadRow[]> {
+    const sql = `
+      SELECT 
+        u.id as technician_id,
+        u.name as technician_name,
+        COUNT(CASE WHEN mr.stage IN ('new', 'in_progress') THEN 1 END) as active_requests,
+        8 as total_capacity,
+        ROUND((COUNT(CASE WHEN mr.stage IN ('new', 'in_progress') THEN 1 END) / 8.0) * 100) as utilization_percentage
+      FROM users u
+      LEFT JOIN maintenance_requests mr ON u.id = mr.assigned_technician_id
+      WHERE u.role = 'technician' AND u.is_active = TRUE
+      GROUP BY u.id, u.name
+      ORDER BY utilization_percentage DESC
+    `;
+    
+    return await query<TechnicianLoadRow[]>(sql);
+  }
+
+  /**
+   * Get open requests summary (pending and overdue)
+   */
+  async getOpenRequestsSummary(): Promise<{ pending: number; overdue: number }> {
+    const sql = `
+      SELECT 
+        COUNT(CASE WHEN stage IN ('new', 'in_progress') AND (deadline IS NULL OR deadline >= CURDATE()) THEN 1 END) as pending,
+        COUNT(CASE WHEN deadline < CURDATE() AND stage NOT IN ('repaired', 'scrap') THEN 1 END) as overdue
+      FROM maintenance_requests
+    `;
+    
+    const result = await query<RowDataPacket[]>(sql);
+    return {
+      pending: result[0]?.pending || 0,
+      overdue: result[0]?.overdue || 0
+    };
+  }
+
   /**
    * Get today's dashboard statistics
    */

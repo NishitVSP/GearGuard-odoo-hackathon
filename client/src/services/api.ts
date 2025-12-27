@@ -192,4 +192,116 @@ export const getUpcomingMaintenance = async (limit: number = 5): Promise<Upcomin
   return response.data.data;
 };
 
+// ============================================
+// Equipment API
+// ============================================
+
+export interface Equipment {
+  id: number;
+  name: string;
+  equipment_code: string;
+  category_id: number;
+  category_name?: string;
+  model?: string;
+  manufacturer?: string;
+  serial_number?: string;
+  purchase_date?: string;
+  warranty_expiry_date?: string;
+  location?: string;
+  status: 'operational' | 'under_maintenance' | 'broken' | 'scrapped';
+  assigned_team_id?: number;
+  department_id?: number;
+  description?: string;
+  specifications?: Record<string, any>;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+  team_name?: string;
+  department_name?: string;
+  open_requests?: number;
+  maintenance_requests?: any[];
+}
+
+export interface CreateEquipmentDto {
+  name: string;
+  equipment_code: string;
+  category_id: number;
+  model?: string;
+  manufacturer?: string;
+  serial_number?: string;
+  purchase_date?: string;
+  warranty_expiry_date?: string;
+  location?: string;
+  status?: Equipment['status'];
+  assigned_team_id: number;
+  description?: string;
+  specifications?: Record<string, any>;
+  image_url?: string;
+}
+
+export interface EquipmentFilters {
+  search?: string;
+  category?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface EquipmentListResponse {
+  items: Equipment[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Get all equipment with filters
+ */
+export const getEquipment = async (filters?: EquipmentFilters): Promise<EquipmentListResponse> => {
+  const response = await api.get('/equipment', { params: filters });
+  return response.data.data;
+};
+
+/**
+ * Get equipment by ID
+ */
+export const getEquipmentById = async (id: number): Promise<Equipment> => {
+  const response = await api.get(`/equipment/${id}`);
+  return response.data.data;
+};
+
+/**
+ * Create new equipment
+ */
+export const createEquipment = async (data: CreateEquipmentDto): Promise<Equipment> => {
+  const response = await api.post('/equipment', data);
+  return response.data.data;
+};
+
+/**
+ * Update equipment
+ */
+export const updateEquipment = async (id: number, data: Partial<CreateEquipmentDto>): Promise<Equipment> => {
+  const response = await api.put(`/equipment/${id}`, data);
+  return response.data.data;
+};
+
+/**
+ * Delete equipment
+ */
+export const deleteEquipment = async (id: number): Promise<void> => {
+  await api.delete(`/equipment/${id}`);
+};
+
+/**
+ * Get equipment categories
+ */
+export const getEquipmentCategories = async (): Promise<Array<{id: number; name: string}>> => {
+  const response = await api.get('/equipment/meta/categories');
+  return response.data.data;
+};
+
 export default api;

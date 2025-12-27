@@ -51,6 +51,29 @@ interface UpcomingMaintenanceDTO {
   technicianName: string | null;
 }
 
+interface CriticalEquipmentDTO {
+  id: number;
+  equipmentCode: string;
+  name: string;
+  healthPercentage: number;
+  status: string;
+  lastMaintenanceDate: string | null;
+}
+
+interface TechnicianLoadDTO {
+  technicianId: number;
+  technicianName: string;
+  activeRequests: number;
+  totalCapacity: number;
+  utilizationPercentage: number;
+}
+
+interface OpenRequestsSummaryDTO {
+  pending: number;
+  overdue: number;
+  total: number;
+}
+
 export class DashboardService {
   /**
    * Calculate percentage change between two values
@@ -162,6 +185,50 @@ export class DashboardService {
       assignedTechnicianId: m.assigned_technician_id,
       technicianName: m.technician_name,
     }));
+  }
+
+  /**
+   * Get critical equipment with health < 30%
+   */
+  async getCriticalEquipment(): Promise<CriticalEquipmentDTO[]> {
+    const equipment = await dashboardRepository.getCriticalEquipment();
+    
+    return equipment.map((e) => ({
+      id: e.id,
+      equipmentCode: e.equipment_code,
+      name: e.name,
+      healthPercentage: e.health_percentage,
+      status: e.status,
+      lastMaintenanceDate: e.last_maintenance_date 
+        ? e.last_maintenance_date.toISOString().split('T')[0] 
+        : null,
+    }));
+  }
+
+  /**
+   * Get technician workload statistics
+   */
+  async getTechnicianLoad(): Promise<TechnicianLoadDTO[]> {
+    const load = await dashboardRepository.getTechnicianLoad();
+    return load.map((tech) => ({
+      technicianId: tech.technician_id,
+      technicianName: tech.technician_name,
+      activeRequests: tech.active_requests,
+      totalCapacity: tech.total_capacity,
+      utilizationPercentage: tech.utilization_percentage,
+    }));
+  }
+
+  /**
+   * Get open requests summary
+   */
+  async getOpenRequestsSummary(): Promise<OpenRequestsSummaryDTO> {
+    const summary = await dashboardRepository.getOpenRequestsSummary();
+    return {
+      pending: summary.pending,
+      overdue: summary.overdue,
+      total: summary.pending + summary.overdue,
+    };
   }
 }
 
