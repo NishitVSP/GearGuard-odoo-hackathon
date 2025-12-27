@@ -24,9 +24,9 @@ export class DatabaseMigrator {
         password: config.database.password,
         multipleStatements: true,
       });
-      console.log('✅ Connected to MySQL server');
+      console.log('Connected to MySQL server');
     } catch (error) {
-      console.error('❌ Failed to connect to MySQL:', error);
+      console.error('Failed to connect to MySQL:', error);
       throw error;
     }
   }
@@ -39,12 +39,12 @@ export class DatabaseMigrator {
         `CREATE DATABASE IF NOT EXISTS ${config.database.database} 
          CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
       );
-      console.log(`✅ Database '${config.database.database}' created or already exists`);
+      console.log(` Database '${config.database.database}' created or already exists`);
 
       await this.connection.query(`USE ${config.database.database}`);
-      console.log(`✅ Using database '${config.database.database}'`);
+      console.log(` Using database '${config.database.database}'`);
     } catch (error) {
-      console.error('❌ Failed to create database:', error);
+      console.error(' Failed to create database:', error);
       throw error;
     }
   }
@@ -62,7 +62,7 @@ export class DatabaseMigrator {
     `;
 
     await this.connection.query(createTableSQL);
-    console.log('✅ Migrations table ready');
+    console.log('Migrations table ready');
   }
 
   async getExecutedMigrations(): Promise<string[]> {
@@ -97,7 +97,7 @@ export class DatabaseMigrator {
   async runMigration(migrationFile: MigrationFile): Promise<void> {
     if (!this.connection) throw new Error('No connection established');
 
-    console.log(`\n🔄 Running migration: ${migrationFile.filename}`);
+    console.log(`\n Running migration: ${migrationFile.filename}`);
 
     try {
       const sql = await fs.readFile(migrationFile.path, 'utf-8');
@@ -111,9 +111,9 @@ export class DatabaseMigrator {
         [migrationFile.filename]
       );
 
-      console.log(`✅ Migration completed: ${migrationFile.filename}`);
+      console.log(` Migration completed: ${migrationFile.filename}`);
     } catch (error) {
-      console.error(`❌ Migration failed: ${migrationFile.filename}`, error);
+      console.error(` Migration failed: ${migrationFile.filename}`, error);
       throw error;
     }
   }
@@ -130,16 +130,16 @@ export class DatabaseMigrator {
         .sort();
 
       for (const file of seedFiles) {
-        console.log(`\n🌱 Running seed: ${file}`);
+        console.log(`\n Running seed: ${file}`);
         const sql = await fs.readFile(path.join(seedsDir, file), 'utf-8');
         await this.connection.query(sql);
-        console.log(`✅ Seed completed: ${file}`);
+        console.log(` Seed completed: ${file}`);
       }
     } catch (error) {
       if ((error as any).code === 'ENOENT') {
-        console.log('ℹ️  No seed files found');
+        console.log(' No seed files found');
       } else {
-        console.error('❌ Seed execution failed:', error);
+        console.error(' Seed execution failed:', error);
         throw error;
       }
     }
@@ -159,23 +159,23 @@ export class DatabaseMigrator {
       );
 
       if (pendingMigrations.length === 0) {
-        console.log('\n✅ All migrations are up to date');
+        console.log('\n All migrations are up to date');
       } else {
-        console.log(`\n📦 Found ${pendingMigrations.length} pending migration(s)`);
+        console.log(`\n Found ${pendingMigrations.length} pending migration(s)`);
 
         for (const migration of pendingMigrations) {
           await this.runMigration(migration);
         }
 
-        console.log('\n✅ All migrations completed successfully');
+        console.log('\n All migrations completed successfully');
       }
 
       if (runSeeds) {
-        console.log('\n🌱 Running seed files...');
+        console.log('\n Running seed files...');
         await this.runSeedFiles();
       }
     } catch (error) {
-      console.error('\n❌ Migration process failed:', error);
+      console.error('\n Migration process failed:', error);
       throw error;
     } finally {
       await this.close();
@@ -186,26 +186,26 @@ export class DatabaseMigrator {
     try {
       await this.connect();
 
-      console.log(`\n⚠️  Dropping database '${config.database.database}'...`);
+      console.log(`\n Dropping database '${config.database.database}'...`);
       await this.connection!.query(`DROP DATABASE IF EXISTS ${config.database.database}`);
-      console.log('✅ Database dropped');
+      console.log(' Database dropped');
 
       await this.createDatabase();
       await this.createMigrationsTable();
 
       const migrationFiles = await this.getMigrationFiles();
 
-      console.log(`\n📦 Running ${migrationFiles.length} migration(s)...`);
+      console.log(`\n Running ${migrationFiles.length} migration(s)...`);
       for (const migration of migrationFiles) {
         await this.runMigration(migration);
       }
 
-      console.log('\n🌱 Running seed files...');
+      console.log('\n Running seed files...');
       await this.runSeedFiles();
 
-      console.log('\n✅ Database reset completed successfully');
+      console.log('\n Database reset completed successfully');
     } catch (error) {
-      console.error('\n❌ Database reset failed:', error);
+      console.error('\n Database reset failed:', error);
       throw error;
     } finally {
       await this.close();
@@ -216,7 +216,7 @@ export class DatabaseMigrator {
     if (this.connection) {
       await this.connection.end();
       this.connection = null;
-      console.log('\n✅ Database connection closed');
+      console.log('\n Database connection closed');
     }
   }
 }

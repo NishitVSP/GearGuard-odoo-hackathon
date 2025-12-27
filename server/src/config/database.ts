@@ -25,10 +25,10 @@ export const getPool = (): mysql.Pool => {
 export const testConnection = async (): Promise<void> => {
   try {
     const connection = await getPool().getConnection();
-    console.log('✅ Database connection established successfully');
+    console.log(' Database connection established successfully');
     connection.release();
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error(' Database connection failed:', error);
     throw error;
   }
 };

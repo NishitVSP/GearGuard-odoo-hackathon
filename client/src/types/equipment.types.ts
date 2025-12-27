@@ -1,40 +1,66 @@
+// src/types/equipment.types.ts
+
 export interface Equipment {
   id: number;
-  name: string;
   equipment_code: string;
-  category: 'machinery' | 'vehicle' | 'tool' | 'electronic' | 'other';
-  model?: string;
-  manufacturer?: string;
-  serial_number?: string;
-  purchase_date?: string;
-  warranty_expiry?: string;
-  location?: string;
-  status: 'operational' | 'maintenance' | 'breakdown' | 'retired';
-  assigned_team_id?: number;
-  description?: string;
-  specifications?: Record<string, any>;
-  image_url?: string;
-  last_maintenance_date?: string;
-  next_maintenance_date?: string;
-  created_at: string;
-  updated_at: string;
+  name: string;
+  category_id: number;
+  department_id: number | null;
+  assigned_to_user_id: number | null;
+  assigned_team_id: number;
+  assigned_technician_id: number | null;
+  serial_number: string | null;
+  manufacturer: string | null;
+  model: string | null;
+  purchase_date: Date | null;
+  warranty_expiry_date: Date | null;
+  location: string | null;
+  status: 'operational' | 'under_maintenance' | 'broken' | 'scrapped';
+  description: string | null;
+  specifications: any;
+  image_url: string | null;
+  created_at: Date;
+  updated_at: Date;
+
+  // Joined data
+  category_name?: string;
+  department_name?: string;
+  team_name?: string;
+  technician_name?: string;
+  assigned_to_name?: string;
+  open_requests?: number;
+  last_maintenance?: Date;
 }
 
-export interface CreateEquipmentDto {
+export interface CreateEquipmentRequest {
   name: string;
-  equipment_code: string;
-  category: Equipment['category'];
-  model?: string;
-  manufacturer?: string;
+  category_id: number;
+  department_id?: number;
+  assigned_team_id: number;
+  assigned_technician_id?: number;
+  assigned_to_user_id?: number;
   serial_number?: string;
+  manufacturer?: string;
+  model?: string;
   purchase_date?: string;
-  warranty_expiry?: string;
+  warranty_expiry_date?: string;
   location?: string;
-  status?: Equipment['status'];
-  assigned_team_id?: number;
   description?: string;
-  specifications?: Record<string, any>;
-  image_url?: string;
 }
 
-export interface UpdateEquipmentDto extends Partial<CreateEquipmentDto> {}
+export interface UpdateEquipmentRequest {
+  name?: string;
+  category_id?: number;
+  department_id?: number;
+  assigned_team_id?: number;
+  assigned_technician_id?: number;
+  assigned_to_user_id?: number;
+  serial_number?: string;
+  manufacturer?: string;
+  model?: string;
+  purchase_date?: string;
+  warranty_expiry_date?: string;
+  location?: string;
+  status?: 'operational' | 'under_maintenance' | 'broken' | 'scrapped';
+  description?: string;
+}

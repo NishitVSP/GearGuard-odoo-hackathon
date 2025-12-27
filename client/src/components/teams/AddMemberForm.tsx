@@ -1,6 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Button from '../common/Button';
 import { FiCheck, FiX } from 'react-icons/fi';
+import * as api from '../../services/api';
 
 interface AddMemberFormProps {
   onSubmit: (data: MemberFormData) => void;
@@ -9,19 +10,42 @@ interface AddMemberFormProps {
 }
 
 export interface MemberFormData {
-  name: string;
+  userId: string;
   role: string;
-  status: 'available' | 'busy' | 'offline';
 }
 
-export default function AddMemberForm({ onSubmit, onCancel }: AddMemberFormProps) {
+interface AvailableUser {
+  id: number;
+  email: string;
+  name?: string;
+}
+
+export default function AddMemberForm({ onSubmit, onCancel, teamId }: AddMemberFormProps) {
   const [formData, setFormData] = useState<MemberFormData>({
-    name: '',
+    userId: '',
     role: '',
-    status: 'available',
   });
+  const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [errors, setErrors] = useState<Partial<Record<keyof MemberFormData, string>>>({});
+
+  useEffect(() => {
+    loadAvailableUsers();
+  }, [teamId]);
+
+  const loadAvailableUsers = async () => {
+    try {
+      setLoading(true);
+      const users = await api.getAvailableUsers(teamId);
+      setAvailableUsers(users);
+    } catch (error) {
+      console.error('Failed to load available users:', error);
+      alert('Failed to load available users');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -34,8 +58,8 @@ export default function AddMemberForm({ onSubmit, onCancel }: AddMemberFormProps
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof MemberFormData, string>> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Member name is required';
+    if (!formData.userId) {
+      newErrors.userId = 'Please select a user';
     }
     if (!formData.role.trim()) {
       newErrors.role = 'Role is required';
@@ -56,23 +80,47 @@ export default function AddMemberForm({ onSubmit, onCancel }: AddMemberFormProps
   const labelClasses = "block text-sm font-medium text-gray-700 mb-1";
   const errorClasses = "text-red-500 text-xs mt-1";
 
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Loading available users...</p>
+      </div>
+    );
+  }
+
+  if (availableUsers.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600 mb-4">No available users to add to this team.</p>
+        <Button variant="secondary" onClick={onCancel}>
+          Close
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Member Name */}
+      {/* User Selection */}
       <div>
-        <label htmlFor="name" className={labelClasses}>
-          Member Name <span className="text-red-500">*</span>
+        <label htmlFor="userId" className={labelClasses}>
+          Select User <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
+        <select
+          id="userId"
+          name="userId"
+          value={formData.userId}
           onChange={handleChange}
           className={inputClasses}
-          placeholder="e.g., John Doe"
-        />
-        {errors.name && <p className={errorClasses}>{errors.name}</p>}
+        >
+          <option value="">Choose a user...</option>
+          {availableUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || user.email}
+            </option>
+          ))}
+        </select>
+        {errors.userId && <p className={errorClasses}>{errors.userId}</p>}
       </div>
 
       {/* Role */}
@@ -87,27 +135,9 @@ export default function AddMemberForm({ onSubmit, onCancel }: AddMemberFormProps
           value={formData.role}
           onChange={handleChange}
           className={inputClasses}
-          placeholder="e.g., Senior Mechanic"
+          placeholder="e.g., Senior Mechanic, Lead Technician"
         />
         {errors.role && <p className={errorClasses}>{errors.role}</p>}
-      </div>
-
-      {/* Status */}
-      <div>
-        <label htmlFor="status" className={labelClasses}>
-          Status
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          className={inputClasses}
-        >
-          <option value="available">Available</option>
-          <option value="busy">Busy</option>
-          <option value="offline">Offline</option>
-        </select>
       </div>
 
       {/* Form Actions */}
