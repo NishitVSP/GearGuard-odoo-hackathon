@@ -81,6 +81,11 @@ export default function EquipmentList() {
         assigned_team_id: 1, // Default team
         location: data.usedInLocation,
         status: 'operational',
+        manufacturer: data.company || undefined,
+        model: data.technician || undefined,
+        serial_number: data.employee || undefined,
+        purchase_date: data.assignedDate || undefined,
+        warranty_expiry_date: data.scrapDate || undefined,
       };
       
       await createEquipment(equipmentData);
@@ -100,8 +105,13 @@ export default function EquipmentList() {
       
       const equipmentData: Partial<CreateEquipmentDto> = {
         name: data.name,
-        ...(category && { category_id: category.id }),
         location: data.usedInLocation,
+        manufacturer: data.company,
+        model: data.technician,
+        serial_number: data.employee,
+        purchase_date: data.assignedDate || undefined,
+        warranty_expiry_date: data.scrapDate || undefined,
+        ...(category && { category_id: category.id }),
       };
       
       await updateEquipment(editingEquipment.id, equipmentData);
@@ -130,13 +140,13 @@ export default function EquipmentList() {
     const equipmentData: EquipmentFormData = {
       name: item.name,
       equipmentCategory: item.category_name || '',
-      company: '',
+      company: item.manufacturer || '',
       usedBy: 'Employee',
       maintenanceTeam: item.team_name || '',
-      assignedDate: item.purchase_date || '',
-      technician: '',
-      employee: '',
-      scrapDate: '',
+      assignedDate: item.purchase_date ? item.purchase_date.split('T')[0] : '',
+      technician: item.model || '',
+      employee: item.serial_number || '',
+      scrapDate: item.warranty_expiry_date ? item.warranty_expiry_date.split('T')[0] : '',
       usedInLocation: item.location || '',
       workCenter: item.department_name || '',
     };
@@ -339,6 +349,7 @@ export default function EquipmentList() {
         <AddEquipmentForm
           onSubmit={handleAddEquipment}
           onCancel={() => setIsModalOpen(false)}
+          categories={categories}
         />
       </Modal>
 
@@ -355,6 +366,7 @@ export default function EquipmentList() {
             mode="edit"
             onSubmit={handleEditEquipment}
             onCancel={() => setEditingEquipment(null)}
+            categories={categories}
           />
         )}
       </Modal>

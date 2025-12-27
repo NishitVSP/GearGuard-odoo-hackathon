@@ -1,6 +1,20 @@
 import { getPool } from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
+// Helper function to normalize dates to YYYY-MM-DD format for MySQL DATE columns
+function normalizeDate(dateString: string | undefined): string | null {
+  if (!dateString) return null;
+  // Extract just the date part (YYYY-MM-DD) from any format  
+  const dateMatch = dateString.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (!dateMatch) return null;
+  
+  // Add one day to compensate for MySQL timezone conversion
+  // This ensures the date displays correctly in the user's timezone
+  const date = new Date(dateMatch[1] + 'T12:00:00Z');
+  date.setDate(date.getDate() + 1);
+  return date.toISOString().split('T')[0];
+}
+
 interface EquipmentFilters {
   search: string;
   category: string;
@@ -214,8 +228,8 @@ export class EquipmentService {
       model || null,
       manufacturer || null,
       serial_number || null,
-      purchase_date || null,
-      warranty_expiry_date || null,
+      normalizeDate(purchase_date),
+      normalizeDate(warranty_expiry_date),
       location || null,
       status,
       assigned_team_id || null,
@@ -246,6 +260,8 @@ export class EquipmentService {
         updates.push(`${key} = ?`);
         if (key === 'specifications' && data[key as keyof CreateEquipmentDto]) {
           values.push(JSON.stringify(data[key as keyof CreateEquipmentDto]));
+        } else if (key === 'purchase_date' || key === 'warranty_expiry_date') {
+          values.push(normalizeDate(data[key as keyof CreateEquipmentDto] as string | undefined));
         } else {
           values.push(data[key as keyof CreateEquipmentDto]);
         }

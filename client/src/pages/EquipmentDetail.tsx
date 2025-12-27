@@ -21,6 +21,7 @@ import {
   getEquipmentById, 
   updateEquipment, 
   deleteEquipment,
+  getEquipmentCategories,
   Equipment 
 } from '../services/api';
 
@@ -31,6 +32,7 @@ export default function EquipmentDetail() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
   const [equipment, setEquipment] = useState<Equipment | null>(null);
+  const [categories, setCategories] = useState<Array<{id: number; name: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +41,19 @@ export default function EquipmentDetail() {
       loadEquipment();
     }
   }, [id]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const cats = await getEquipmentCategories();
+      setCategories(cats);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
 
   const loadEquipment = async () => {
     try {
@@ -58,9 +73,17 @@ export default function EquipmentDetail() {
     try {
       if (!equipment) return;
 
+      const category = categories.find(c => c.name === data.equipmentCategory);
+
       await updateEquipment(equipment.id, {
         name: data.name,
         location: data.usedInLocation,
+        manufacturer: data.company,
+        model: data.technician,
+        serial_number: data.employee,
+        purchase_date: data.assignedDate || undefined,
+        warranty_expiry_date: data.scrapDate || undefined,
+        ...(category && { category_id: category.id }),
       });
       
       setIsEditModalOpen(false);
@@ -120,13 +143,13 @@ export default function EquipmentDetail() {
   const equipmentFormData: EquipmentFormData = {
     name: equipment.name,
     equipmentCategory: equipment.category_name || '',
-    company: '',
+    company: equipment.manufacturer || '',
     usedBy: 'Employee',
     maintenanceTeam: equipment.team_name || '',
-    assignedDate: equipment.purchase_date || '',
-    technician: '',
-    employee: '',
-    scrapDate: '',
+    assignedDate: equipment.purchase_date ? equipment.purchase_date.split('T')[0] : '',
+    technician: equipment.model || '',
+    employee: equipment.serial_number || '',
+    scrapDate: equipment.warranty_expiry_date ? equipment.warranty_expiry_date.split('T')[0] : '',
     usedInLocation: equipment.location || '',
     workCenter: equipment.department_name || '',
   };
@@ -135,76 +158,9 @@ export default function EquipmentDetail() {
     (req: any) => ['new', 'in_progress', 'assigned'].includes(req.status)
   );
 
-<<<<<<< Updated upstream
-  const handleDeleteEquipment = () => {
-    console.log('Deleting equipment:', id);
-    // TODO: Send delete request to backend API
-    setIsDeleteDialogOpen(false);
-    // Navigate back to equipment list after deletion
-    navigate('/equipment');
-  };
-
-  const handleCreateRequest = (data: any) => {
-    console.log('Creating maintenance request:', data);
-    // TODO: Send request to backend API
-    setIsCreateRequestModalOpen(false);
-  };
-
-  const maintenanceHistory = [
-    {
-      id: 'REQ-2024-156',
-      date: '2024-12-15',
-      type: 'preventive',
-      status: 'repaired',
-      technician: 'Mike Johnson',
-      duration: '2.5 hours',
-      description: 'Regular preventive maintenance',
-    },
-    {
-      id: 'REQ-2024-142',
-      date: '2024-11-20',
-      type: 'corrective',
-      status: 'repaired',
-      technician: 'Sarah Wilson',
-      duration: '4 hours',
-      description: 'Belt replacement and calibration',
-    },
-    {
-      id: 'REQ-2024-089',
-      date: '2024-10-10',
-      type: 'preventive',
-      status: 'repaired',
-      technician: 'Mike Johnson',
-      duration: '1.5 hours',
-      description: 'Oil change and inspection',
-    },
-  ];
-
-  const activeRequests = [
-    {
-      id: 'REQ-2025-003',
-      subject: 'Strange noise during operation',
-      type: 'corrective',
-      status: 'in_progress',
-      technician: 'Mike Johnson',
-      createdDate: '2024-12-26',
-      priority: 'high',
-    },
-    {
-      id: 'REQ-2025-001',
-      subject: 'Routine inspection needed',
-      type: 'preventive',
-      status: 'new',
-      technician: 'Unassigned',
-      createdDate: '2024-12-24',
-      priority: 'medium',
-    },
-  ];
-=======
   const maintenanceHistory = (equipment.maintenance_requests || []).filter(
     (req: any) => req.status === 'completed'
   ).slice(0, 10);
->>>>>>> Stashed changes
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -494,6 +450,7 @@ export default function EquipmentDetail() {
           mode="edit"
           onSubmit={handleEditEquipment}
           onCancel={() => setIsEditModalOpen(false)}
+          categories={categories}
         />
       </Modal>
 
