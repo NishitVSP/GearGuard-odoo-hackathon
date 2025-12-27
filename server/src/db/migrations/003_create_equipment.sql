@@ -1,0 +1,27 @@
+-- Create Equipment Table
+CREATE TABLE IF NOT EXISTS equipment (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  equipment_code VARCHAR(100) NOT NULL UNIQUE,
+  category ENUM('machinery', 'vehicle', 'tool', 'electronic', 'other') NOT NULL,
+  model VARCHAR(255),
+  manufacturer VARCHAR(255),
+  serial_number VARCHAR(255),
+  purchase_date DATE,
+  warranty_expiry DATE,
+  location VARCHAR(255),
+  status ENUM('operational', 'maintenance', 'breakdown', 'retired') DEFAULT 'operational',
+  assigned_team_id INT,
+  description TEXT,
+  specifications JSON,
+  image_url VARCHAR(500),
+  last_maintenance_date TIMESTAMP,
+  next_maintenance_date TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (assigned_team_id) REFERENCES teams(id) ON DELETE SET NULL,
+  INDEX idx_code (equipment_code),
+  INDEX idx_category (category),
+  INDEX idx_status (status),
+  INDEX idx_team (assigned_team_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
