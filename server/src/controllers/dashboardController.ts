@@ -64,6 +64,63 @@ export class DashboardController {
       next(error);
     }
   }
+
+  /**
+   * Get critical equipment with health < 30%
+   * GET /api/dashboard/critical-equipment
+   */
+  async getCriticalEquipment(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const equipment = await dashboardService.getCriticalEquipment();
+      
+      res.status(200).json({
+        status: 'success',
+        data: equipment,
+        meta: {
+          count: equipment.length,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get technician workload statistics
+   * GET /api/dashboard/technician-load
+   */
+  async getTechnicianLoad(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const load = await dashboardService.getTechnicianLoad();
+      
+      res.status(200).json({
+        status: 'success',
+        data: load,
+        meta: {
+          count: load.length,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get open requests summary
+   * GET /api/dashboard/open-requests
+   */
+  async getOpenRequestsSummary(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const summary = await dashboardService.getOpenRequestsSummary();
+      
+      res.status(200).json({
+        status: 'success',
+        data: summary,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new DashboardController();
