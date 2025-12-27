@@ -1,3 +1,4 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\db\migrator.ts
 import { getPool } from '../config/database';
 
 async function testDatabaseConnection() {

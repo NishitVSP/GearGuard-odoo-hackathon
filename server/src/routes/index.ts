@@ -1,7 +1,9 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\routes\index.ts
+
 import { Router } from 'express';
 import dashboardRoutes from './dashboardRoutes';
 import dashboardTestRoutes from './dashboardTestRoutes';
-
+import authRoutes from './authRoutes';
 const router = Router();
 
 // Import routes (to be implemented)
@@ -17,7 +19,7 @@ router.use('/dashboard-test', dashboardTestRoutes); // Test routes without auth
 // router.use('/equipment', equipmentRoutes);
 // router.use('/teams', teamRoutes);
 // router.use('/requests', requestRoutes);
-// router.use('/auth', authRoutes);
+router.use('/auth', authRoutes);
 // router.use('/reports', reportRoutes);
 
 // Placeholder endpoint

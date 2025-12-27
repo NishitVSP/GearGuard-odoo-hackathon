@@ -1,3 +1,5 @@
+// src\middleware\validator.ts
+
 import { validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandler';

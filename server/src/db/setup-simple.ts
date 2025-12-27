@@ -1,3 +1,4 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\db\migrator.ts
 import fs from 'fs/promises';
 import path from 'path';
 import mysql from 'mysql2/promise';
@@ -25,7 +26,7 @@ async function setupSimplifiedDatabase() {
     console.log(' Creating simplified database schema...');
     const schemaPath = path.join(__dirname, 'migrations', '000_simplified_schema.sql');
     const schemaSql = await fs.readFile(schemaPath, 'utf-8');
-    
+
     await connection.query(schemaSql);
     console.log(' Database and tables created\n');
 
@@ -36,13 +37,13 @@ async function setupSimplifiedDatabase() {
     console.log(' Seeding initial data...');
     const seedPath = path.join(__dirname, 'seeds', '000_simplified_seed.sql');
     const seedSql = await fs.readFile(seedPath, 'utf-8');
-    
+
     await connection.query(seedSql);
     console.log(' Seed data inserted\n');
 
     // Verify setup
     console.log(' Verifying database setup...\n');
-    
+
     const [tables] = await connection.query('SHOW TABLES');
     console.log(` Created ${(tables as any[]).length} tables:`);
     (tables as any[]).forEach((table: any, index: number) => {

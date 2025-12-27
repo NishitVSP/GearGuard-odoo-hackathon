@@ -1,3 +1,4 @@
+-- C:\Users\Lenovo\Desktop\programming\gearguard\server\src\db\migrations\000_simplified_schema.sql
 -- ============================================
 -- GearGuard Simplified Database Schema
 -- Focused on Core Requirements Only

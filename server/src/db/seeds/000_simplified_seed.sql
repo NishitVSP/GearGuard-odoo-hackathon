@@ -1,3 +1,5 @@
+-- C:\Users\Lenovo\Desktop\programming\gearguard\server\src\db\seeds\000_simplified_seed.sql
+
 -- ============================================
 -- GearGuard - Simplified Seed Data
 -- Based on Hackathon Requirements

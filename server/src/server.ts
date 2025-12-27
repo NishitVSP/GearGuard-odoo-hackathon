@@ -1,3 +1,5 @@
+// src\server.ts
+
 import app from './app';
 import { config, testConnection } from './config';
 

@@ -1,3 +1,5 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\middleware\authMiddleware.ts
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';

@@ -1,3 +1,4 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\config\database.ts
 import mysql from 'mysql2/promise';
 import { config } from './env';
 

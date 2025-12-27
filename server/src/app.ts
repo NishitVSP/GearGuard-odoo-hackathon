@@ -1,3 +1,6 @@
+//C:\Users\Lenovo\Desktop\programming\gearguard\server\src\app.ts
+
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

@@ -1,3 +1,5 @@
+// C:\Users\Lenovo\Desktop\programming\gearguard\server\src\db\migrator.ts
+
 import fs from 'fs/promises';
 import path from 'path';
 import mysql from 'mysql2/promise';
@@ -183,7 +185,7 @@ export class DatabaseMigrator {
   async reset(): Promise<void> {
     try {
       await this.connect();
-      
+
       console.log(`\n⚠️  Dropping database '${config.database.database}'...`);
       await this.connection!.query(`DROP DATABASE IF EXISTS ${config.database.database}`);
       console.log('✅ Database dropped');
@@ -192,7 +194,7 @@ export class DatabaseMigrator {
       await this.createMigrationsTable();
 
       const migrationFiles = await this.getMigrationFiles();
-      
+
       console.log(`\n📦 Running ${migrationFiles.length} migration(s)...`);
       for (const migration of migrationFiles) {
         await this.runMigration(migration);
