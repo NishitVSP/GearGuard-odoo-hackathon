@@ -3,6 +3,12 @@ import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import AddTeamForm, { TeamFormData } from '../components/teams/AddTeamForm';
+import AddMemberForm, { MemberFormData } from '../components/teams/AddMemberForm';
+import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
+import AssignTaskDialog from '../components/teams/AssignTaskDialog';
+import ViewProfileModal from '../components/teams/ViewProfileModal';
 import { FiPlus, FiUsers, FiEdit, FiTrash2 } from 'react-icons/fi';
 
 interface Team {
@@ -26,6 +32,12 @@ interface TeamMember {
 
 export default function TeamManagement() {
   const [selectedTeam, setSelectedTeam] = useState<number | null>(1);
+  const [isAddTeamModalOpen, setIsAddTeamModalOpen] = useState(false);
+  const [isEditTeamModalOpen, setIsEditTeamModalOpen] = useState(false);
+  const [isDeleteTeamDialogOpen, setIsDeleteTeamDialogOpen] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [assignTaskMember, setAssignTaskMember] = useState<TeamMember | null>(null);
+  const [viewProfileMember, setViewProfileMember] = useState<TeamMember | null>(null);
 
   // Mock data
   const teams: Team[] = [
@@ -88,6 +100,38 @@ export default function TeamManagement() {
 
   const currentTeam = teams.find(t => t.id === selectedTeam);
 
+  // Handlers
+  const handleAddTeam = (data: TeamFormData) => {
+    console.log('New team data:', data);
+    // TODO: Send to backend API
+    setIsAddTeamModalOpen(false);
+  };
+
+  const handleEditTeam = (data: TeamFormData) => {
+    console.log('Updated team data:', data);
+    // TODO: Send to backend API
+    setIsEditTeamModalOpen(false);
+  };
+
+  const handleDeleteTeam = () => {
+    console.log('Deleting team:', selectedTeam);
+    // TODO: Send to backend API
+    setIsDeleteTeamDialogOpen(false);
+    setSelectedTeam(null);
+  };
+
+  const handleAddMember = (data: MemberFormData) => {
+    console.log('New member data:', data, 'for team:', selectedTeam);
+    // TODO: Send to backend API
+    setIsAddMemberModalOpen(false);
+  };
+
+  const handleAssignTask = (requestId: string) => {
+    console.log('Assigning request:', requestId, 'to member:', assignTaskMember?.id);
+    // TODO: Send to backend API
+    setAssignTaskMember(null);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available': return 'success';
@@ -118,7 +162,7 @@ export default function TeamManagement() {
           <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
           <p className="text-gray-600 mt-1">Manage maintenance teams and members</p>
         </div>
-        <Button variant="primary" icon={<FiPlus />}>
+        <Button variant="primary" icon={<FiPlus />} onClick={() => setIsAddTeamModalOpen(true)}>
           Add Team
         </Button>
       </div>
@@ -177,10 +221,10 @@ export default function TeamManagement() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="secondary" size="sm" icon={<FiEdit />}>
+                      <Button variant="secondary" size="sm" icon={<FiEdit />} onClick={() => setIsEditTeamModalOpen(true)}>
                         Edit
                       </Button>
-                      <Button variant="danger" size="sm" icon={<FiTrash2 />}>
+                      <Button variant="danger" size="sm" icon={<FiTrash2 />} onClick={() => setIsDeleteTeamDialogOpen(true)}>
                         Delete
                       </Button>
                     </div>
@@ -214,7 +258,7 @@ export default function TeamManagement() {
               <Card 
                 title="Team Members"
                 actions={
-                  <Button variant="primary" size="sm" icon={<FiPlus />}>
+                  <Button variant="primary" size="sm" icon={<FiPlus />} onClick={() => setIsAddMemberModalOpen(true)}>
                     Add Member
                   </Button>
                 }
@@ -253,10 +297,16 @@ export default function TeamManagement() {
 
                       {/* Actions */}
                       <div className="flex gap-2 mt-4">
-                        <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                        <button 
+                          onClick={() => setViewProfileMember(member)}
+                          className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        >
                           View Profile
                         </button>
-                        <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                        <button 
+                          onClick={() => setAssignTaskMember(member)}
+                          className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        >
                           Assign Task
                         </button>
                       </div>
@@ -276,6 +326,79 @@ export default function TeamManagement() {
           )}
         </div>
       </div>
+
+      {/* Add Team Modal */}
+      <Modal
+        isOpen={isAddTeamModalOpen}
+        onClose={() => setIsAddTeamModalOpen(false)}
+        title="Add New Team"
+        size="md"
+      >
+        <AddTeamForm
+          onSubmit={handleAddTeam}
+          onCancel={() => setIsAddTeamModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Edit Team Modal */}
+      <Modal
+        isOpen={isEditTeamModalOpen}
+        onClose={() => setIsEditTeamModalOpen(false)}
+        title="Edit Team"
+        size="md"
+      >
+        {currentTeam && (
+          <AddTeamForm
+            team={{
+              name: currentTeam.name,
+              specialization: currentTeam.specialization,
+            }}
+            mode="edit"
+            onSubmit={handleEditTeam}
+            onCancel={() => setIsEditTeamModalOpen(false)}
+          />
+        )}
+      </Modal>
+
+      {/* Delete Team Confirmation */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteTeamDialogOpen}
+        onClose={() => setIsDeleteTeamDialogOpen(false)}
+        onConfirm={handleDeleteTeam}
+        equipmentName={currentTeam?.name || ''}
+      />
+
+      {/* Add Member Modal */}
+      <Modal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+        title="Add Team Member"
+        size="md"
+      >
+        {selectedTeam && (
+          <AddMemberForm
+            teamId={selectedTeam}
+            onSubmit={handleAddMember}
+            onCancel={() => setIsAddMemberModalOpen(false)}
+          />
+        )}
+      </Modal>
+
+      {/* Assign Task Dialog */}
+      <AssignTaskDialog
+        isOpen={!!assignTaskMember}
+        onClose={() => setAssignTaskMember(null)}
+        onAssign={handleAssignTask}
+        memberName={assignTaskMember?.name || ''}
+        memberId={assignTaskMember?.id || 0}
+      />
+
+      {/* View Profile Modal */}
+      <ViewProfileModal
+        isOpen={!!viewProfileMember}
+        onClose={() => setViewProfileMember(null)}
+        member={viewProfileMember}
+      />
     </Layout>
   );
 }
