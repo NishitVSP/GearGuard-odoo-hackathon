@@ -7,6 +7,7 @@ import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
 import AddEquipmentForm, { EquipmentFormData } from '../components/equipment/AddEquipmentForm';
 import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
+import RequestForm from '../components/maintenance-request/RequestForm';
 import { 
   FiArrowLeft, 
   FiEdit, 
@@ -22,6 +23,7 @@ export default function EquipmentDetail() {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
 
   // Mock data
   const equipment = {
@@ -68,6 +70,12 @@ export default function EquipmentDetail() {
     setIsDeleteDialogOpen(false);
     // Navigate back to equipment list after deletion
     navigate('/equipment');
+  };
+
+  const handleCreateRequest = (data: any) => {
+    console.log('Creating maintenance request:', data);
+    // TODO: Send request to backend API
+    setIsCreateRequestModalOpen(false);
   };
 
   const maintenanceHistory = [
@@ -241,7 +249,7 @@ export default function EquipmentDetail() {
           <Card 
             title="Active Maintenance Requests"
             actions={
-              <Button variant="primary" size="sm" icon={<FiCalendar />}>
+              <Button variant="primary" size="sm" icon={<FiCalendar />} onClick={() => setIsCreateRequestModalOpen(true)}>
                 Create Request
               </Button>
             }
@@ -409,6 +417,13 @@ export default function EquipmentDetail() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteEquipment}
         equipmentName={equipment.name}
+      />
+
+      {/* Create Request Modal */}
+      <RequestForm
+        isOpen={isCreateRequestModalOpen}
+        onClose={() => setIsCreateRequestModalOpen(false)}
+        onSubmit={handleCreateRequest}
       />
     </Layout>
   );
