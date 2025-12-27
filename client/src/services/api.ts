@@ -402,4 +402,141 @@ export const getAvailableUsers = async (teamId: number): Promise<Array<{ id: num
   return response.data.data;
 };
 
+// ============================================
+// Maintenance Requests API
+// ============================================
+
+export interface KanbanRequest {
+  id: number;
+  request_number: string;
+  subject: string;
+  description: string;
+  request_type: 'corrective' | 'preventive';
+  stage: 'new' | 'in_progress' | 'repaired' | 'scrap';
+  priority: 'low' | 'medium' | 'high';
+  scheduled_date: string | null;
+  scheduled_time: string | null;
+  deadline: string | null;
+  created_at: string;
+  equipment_name: string;
+  equipment_code: string;
+  technician_name: string | null;
+  technician_avatar: string | null;
+}
+
+export interface KanbanResponse {
+  new: KanbanRequest[];
+  in_progress: KanbanRequest[];
+  repaired: KanbanRequest[];
+  scrap: KanbanRequest[];
+}
+
+export interface CalendarEvent {
+  id: string;
+  equipment: string;
+  subject: string;
+  type: 'corrective' | 'preventive';
+  scheduledDate: string;
+  scheduledTime: string;
+  technician: string;
+  stage: string;
+  priority: 'low' | 'medium' | 'high';
+}
+
+export interface CreateRequestDto {
+  subject: string;
+  description?: string;
+  request_type: 'corrective' | 'preventive';
+  equipment_id: number;
+  assigned_technician_id?: number;
+  priority?: 'low' | 'medium' | 'high';
+  scheduled_date?: string;
+  scheduled_time?: string;
+  deadline?: string;
+}
+
+export interface UpdateRequestDto {
+  subject?: string;
+  description?: string;
+  stage?: 'new' | 'in_progress' | 'repaired' | 'scrap';
+  priority?: 'low' | 'medium' | 'high';
+  assigned_technician_id?: number;
+  scheduled_date?: string;
+  scheduled_time?: string;
+  deadline?: string;
+}
+
+export interface UpdateRequestStageDto {
+  stage: 'new' | 'in_progress' | 'repaired' | 'scrap';
+}
+
+/**
+ * Get all requests for Kanban board grouped by stage
+ */
+export const getKanbanRequests = async (): Promise<KanbanResponse> => {
+  const response = await api.get('/requests/kanban');
+  return response.data.data;
+};
+
+/**
+ * Get calendar events for scheduled maintenance
+ */
+export const getCalendarEvents = async (year?: number, month?: number): Promise<CalendarEvent[]> => {
+  const response = await api.get('/requests/calendar', {
+    params: { year, month },
+  });
+  return response.data.data;
+};
+
+/**
+ * Create a new maintenance request
+ */
+export const createRequest = async (data: CreateRequestDto): Promise<MaintenanceRequestDTO> => {
+  const response = await api.post('/requests', data);
+  return response.data.data;
+};
+
+/**
+ * Update a maintenance request
+ */
+export const updateRequest = async (id: number, data: UpdateRequestDto): Promise<MaintenanceRequestDTO> => {
+  const response = await api.put(`/requests/${id}`, data);
+  return response.data.data;
+};
+
+/**
+ * Update request stage (for Kanban drag & drop)
+ */
+export const updateRequestStage = async (id: number, data: UpdateRequestStageDto): Promise<void> => {
+  await api.patch(`/requests/${id}/stage`, data);
+};
+
+/**
+ * Delete a maintenance request
+ */
+export const deleteRequest = async (id: number): Promise<void> => {
+  await api.delete(`/requests/${id}`);
+};
+
+// ============================================
+// Users API
+// ============================================
+
+export interface Technician {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  team_id?: number;
+  team_name?: string;
+}
+
+/**
+ * Get all technicians
+ */
+export const getTechnicians = async (): Promise<Technician[]> => {
+  const response = await api.get('/users/technicians');
+  return response.data.data;
+};
+
 export default api;

@@ -31,9 +31,13 @@ interface TeamMember {
   user_id?: number;
   team_id?: number;
   name?: string;
+  user_name?: string;
   email?: string;
+  user_email?: string;
   role: string;
+  user_role?: string;
   avatar?: string;
+  user_avatar?: string;
   status?: 'available' | 'busy' | 'offline';
   active_requests?: number;
   activeRequests?: number;
@@ -171,14 +175,16 @@ export default function TeamManagement() {
 
   // Helper to normalize member data from API
   const normalizeMember = (member: TeamMember) => {
-    const initials = member.name
-      ? member.name.split(' ').map(n => n[0]).join('').toUpperCase()
-      : member.email?.substring(0, 2).toUpperCase() || 'U';
+    const memberName = member.user_name || member.name || member.user_email || member.email || 'Unknown';
+    const initials = memberName !== 'Unknown'
+      ? memberName.split(' ').map(n => n[0]).join('').toUpperCase()
+      : 'U';
     
     return {
       ...member,
-      name: member.name || member.email || 'Unknown',
-      avatar: member.avatar || initials,
+      name: memberName,
+      email: member.user_email || member.email,
+      avatar: member.user_avatar || member.avatar || initials,
       status: member.status || 'available' as const,
       activeRequests: member.active_requests || member.activeRequests || 0,
     };
@@ -457,7 +463,7 @@ export default function TeamManagement() {
         isOpen={!!assignTaskMember}
         onClose={() => setAssignTaskMember(null)}
         onAssign={handleAssignTask}
-        memberName={assignTaskMember?.name || ''}
+        memberName={assignTaskMember ? normalizeMember(assignTaskMember).name : ''}
         memberId={assignTaskMember?.id || 0}
       />
 
@@ -465,7 +471,7 @@ export default function TeamManagement() {
       <ViewProfileModal
         isOpen={!!viewProfileMember}
         onClose={() => setViewProfileMember(null)}
-        member={viewProfileMember}
+        member={viewProfileMember ? normalizeMember(viewProfileMember) : null}
       />
     </Layout>
   );

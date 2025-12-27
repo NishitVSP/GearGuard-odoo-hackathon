@@ -11,6 +11,8 @@ export interface WorkCenterRow extends RowDataPacket {
   department_name: string | null;
   assigned_team_id: number | null;
   assigned_team_name: string | null;
+  assigned_member_id: number | null;
+  assigned_member_name: string | null;
   status: 'active' | 'inactive' | 'maintenance';
   capacity: number;
   description: string | null;
@@ -25,6 +27,7 @@ export interface CreateWorkCenterData {
   location?: string;
   department_id?: number;
   assigned_team_id?: number;
+  assigned_member_id?: number;
   status?: 'active' | 'inactive' | 'maintenance';
   capacity?: number;
   description?: string;
@@ -37,6 +40,7 @@ export interface UpdateWorkCenterData {
   location?: string;
   department_id?: number;
   assigned_team_id?: number;
+  assigned_member_id?: number;
   status?: 'active' | 'inactive' | 'maintenance';
   capacity?: number;
   description?: string;
@@ -58,6 +62,8 @@ export class WorkCenterRepository {
         d.name as department_name,
         wc.assigned_team_id,
         mt.name as assigned_team_name,
+        wc.assigned_member_id,
+        u.name as assigned_member_name,
         wc.status,
         wc.capacity,
         wc.description,
@@ -66,6 +72,7 @@ export class WorkCenterRepository {
       FROM work_centers wc
       LEFT JOIN departments d ON wc.department_id = d.id
       LEFT JOIN maintenance_teams mt ON wc.assigned_team_id = mt.id
+      LEFT JOIN users u ON wc.assigned_member_id = u.id
       ORDER BY wc.created_at DESC
     `;
 
@@ -88,6 +95,8 @@ export class WorkCenterRepository {
         d.name as department_name,
         wc.assigned_team_id,
         mt.name as assigned_team_name,
+        wc.assigned_member_id,
+        u.name as assigned_member_name,
         wc.status,
         wc.capacity,
         wc.description,
@@ -96,6 +105,7 @@ export class WorkCenterRepository {
       FROM work_centers wc
       LEFT JOIN departments d ON wc.department_id = d.id
       LEFT JOIN maintenance_teams mt ON wc.assigned_team_id = mt.id
+      LEFT JOIN users u ON wc.assigned_member_id = u.id
       WHERE wc.id = ?
     `;
 
@@ -134,8 +144,8 @@ export class WorkCenterRepository {
     const sql = `
       INSERT INTO work_centers (
         name, code, category, location, department_id, 
-        assigned_team_id, status, capacity, description
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        assigned_team_id, assigned_member_id, status, capacity, description
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -145,6 +155,7 @@ export class WorkCenterRepository {
       data.location || null,
       data.department_id || null,
       data.assigned_team_id || null,
+      data.assigned_member_id || null,
       data.status || 'active',
       data.capacity || 100,
       data.description || null,
@@ -184,6 +195,10 @@ export class WorkCenterRepository {
     if (data.assigned_team_id !== undefined) {
       fields.push('assigned_team_id = ?');
       values.push(data.assigned_team_id);
+    }
+    if (data.assigned_member_id !== undefined) {
+      fields.push('assigned_member_id = ?');
+      values.push(data.assigned_member_id);
     }
     if (data.status !== undefined) {
       fields.push('status = ?');

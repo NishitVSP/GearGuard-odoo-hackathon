@@ -14,6 +14,8 @@ export interface WorkCenterDTO {
   departmentName: string | null;
   assignedTeamId: number | null;
   assignedTeamName: string | null;
+  assignedMemberId: number | null;
+  assignedMemberName: string | null;
   status: 'active' | 'inactive' | 'maintenance';
   capacity: number;
   utilization?: number;
@@ -30,6 +32,7 @@ export interface CreateWorkCenterDTO {
   location?: string;
   departmentId?: number;
   assignedTeamId?: number;
+  assignedMemberId?: number;
   status?: 'active' | 'inactive' | 'maintenance';
   capacity?: number;
   description?: string;
@@ -42,6 +45,7 @@ export interface UpdateWorkCenterDTO {
   location?: string;
   departmentId?: number;
   assignedTeamId?: number;
+  assignedMemberId?: number;
   status?: 'active' | 'inactive' | 'maintenance';
   capacity?: number;
   description?: string;
@@ -62,6 +66,8 @@ export class WorkCenterService {
       departmentName: row.department_name,
       assignedTeamId: row.assigned_team_id,
       assignedTeamName: row.assigned_team_name,
+      assignedMemberId: row.assigned_member_id,
+      assignedMemberName: row.assigned_member_name,
       status: row.status,
       capacity: row.capacity,
       utilization,
@@ -122,6 +128,7 @@ export class WorkCenterService {
       location: data.location,
       department_id: data.departmentId,
       assigned_team_id: data.assignedTeamId,
+      assigned_member_id: data.assignedMemberId,
       status: data.status,
       capacity: data.capacity,
       description: data.description,
@@ -163,6 +170,7 @@ export class WorkCenterService {
       location: data.location,
       department_id: data.departmentId,
       assigned_team_id: data.assignedTeamId,
+      assigned_member_id: data.assignedMemberId,
       status: data.status,
       capacity: data.capacity,
       description: data.description,

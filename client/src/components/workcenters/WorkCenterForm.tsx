@@ -1,6 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Button from '../common/Button';
 import { FiCheck, FiX } from 'react-icons/fi';
+import axios from 'axios';
 
 interface WorkCenterFormProps {
   onSubmit: (data: WorkCenterFormData) => void;
@@ -18,6 +19,7 @@ export interface WorkCenterFormData {
   location: string;
   department: string;
   assignedTeam: string;
+  assignedMember: string;
 }
 
 export default function WorkCenterForm({ 
@@ -36,14 +38,49 @@ export default function WorkCenterForm({
       location: '',
       department: '',
       assignedTeam: '',
+      assignedMember: '',
     }
   );
 
   const [errors, setErrors] = useState<Partial<Record<keyof WorkCenterFormData, string>>>({});
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: number; name: string }>>([]);
+
+  // Fetch team members when assignedTeam changes
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      if (!formData.assignedTeam) {
+        setTeamMembers([]);
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `http://localhost:5000/api/teams/${formData.assignedTeam}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setTeamMembers(response.data.data?.members || []);
+      } catch (error) {
+        console.error('Failed to fetch team members:', error);
+        setTeamMembers([]);
+      }
+    };
+
+    fetchTeamMembers();
+  }, [formData.assignedTeam]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Reset assigned member when team changes
+    if (name === 'assignedTeam') {
+      setFormData(prev => ({ ...prev, [name]: value, assignedMember: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    
     if (errors[name as keyof WorkCenterFormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -188,6 +225,28 @@ export default function WorkCenterForm({
         </select>
         {errors.assignedTeam && <p className={errorClasses}>{errors.assignedTeam}</p>}
       </div>
+
+      {/* Assigned Member */}
+      {formData.assignedTeam && teamMembers.length > 0 && (
+        <div>
+          <label htmlFor="assignedMember" className={labelClasses}>
+            Assigned Member
+          </label>
+          <select
+            id="assignedMember"
+            name="assignedMember"
+            value={formData.assignedMember}
+            onChange={handleChange}
+            className={inputClasses}
+          >
+            <option value="">Select Member (optional)</option>
+            {teamMembers.map(member => (
+              <option key={member.id} value={member.id}>{member.name}</option>
+            ))}
+          </select>
+          {errors.assignedMember && <p className={errorClasses}>{errors.assignedMember}</p>}
+        </div>
+      )}
 
       {/* Form Actions */}
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">

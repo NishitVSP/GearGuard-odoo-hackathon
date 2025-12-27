@@ -6,25 +6,43 @@ import teamRoutes from './teamRoutes';
 import authRoutes from './authRoutes';
 import equipmentRoutes from './equipmentRoutes';
 import workCenterRoutes from './workCenterRoutes';
+import requestRoutes from './requestRoutes';
+import userRoutes from './userRoutes';
+import healthRoutes from './healthRoutes';
+
 const router = Router();
 
-// Import routes (to be implemented)
-// import teamRoutes from './teamRoutes';
-// import requestRoutes from './requestRoutes';
-// import reportRoutes from './reportRoutes';
+// Health check routes (no auth required)
+router.use('/', healthRoutes);
 
-// Use routes
+// Authentication routes (no auth required)
+router.use('/auth', authRoutes);
+
+// Protected routes
 router.use('/dashboard', dashboardRoutes);
 router.use('/equipment', equipmentRoutes);
 router.use('/teams', teamRoutes);
 router.use('/work-centers', workCenterRoutes);
-// router.use('/requests', requestRoutes);
-router.use('/auth', authRoutes);
-// router.use('/reports', reportRoutes);
+router.use('/requests', requestRoutes);
+router.use('/users', userRoutes);
 
-// Placeholder endpoint
+// API root
 router.get('/', (_req, res) => {
-  res.json({ message: 'GearGuard API v1.0.0' });
+  res.json({ 
+    message: 'GearGuard - Equipment Maintenance Management System API',
+    version: '1.0.0',
+    documentation: '/api/docs',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      dashboard: '/api/dashboard',
+      equipment: '/api/equipment',
+      teams: '/api/teams',
+      workCenters: '/api/work-centers',
+      requests: '/api/requests',
+      users: '/api/users'
+    }
+  });
 });
 
 export default router;

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Button from '../common/Button';
 import { FiX } from 'react-icons/fi';
+import { getEquipment, getTechnicians } from '../../services/api';
+import toast from 'react-hot-toast';
 
 interface RequestFormProps {
   isOpen: boolean;
@@ -47,59 +49,48 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
     instructions: '',
   });
 
-  // Mock data - will be replaced with API calls
-  const equipment = [
-    { id: '1', name: 'CNC Machine #5', serialNumber: 'CNC-2024-005', category: 'CNC Machines', team: 'Mechanics Team' },
-    { id: '2', name: 'Forklift #12', serialNumber: 'FLT-2023-012', category: 'Vehicles', team: 'Mechanics Team' },
-    { id: '3', name: 'Air Compressor', serialNumber: 'CMP-2022-008', category: 'HVAC Equipment', team: 'HVAC Team' },
-    { id: '4', name: 'Lathe Machine #3', serialNumber: 'LTH-2024-003', category: 'CNC Machines', team: 'Mechanics Team' },
-    { id: '5', name: 'Dell Workstation', serialNumber: 'WKS-2024-042', category: 'Computers', team: 'IT Support Team' },
-  ];
+  const [equipment, setEquipment] = useState<any[]>([]);
+  const [technicians, setTechnicians] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const workCenters = [
-    { id: '1', name: 'Production Floor A', category: 'Manufacturing', team: 'Mechanics Team' },
-    { id: '2', name: 'Assembly Line 1', category: 'Assembly', team: 'Mechanics Team' },
-    { id: '3', name: 'Warehouse Zone B', category: 'Logistics', team: 'Facilities Team' },
-    { id: '4', name: 'Quality Control Lab', category: 'QC', team: 'IT Support Team' },
-  ];
+  // Fetch data from API
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
 
-  const teams = [
-    { id: '1', name: 'Mechanics Team' },
-    { id: '2', name: 'Electricians Team' },
-    { id: '3', name: 'IT Support Team' },
-    { id: '4', name: 'HVAC Team' },
-  ];
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [equipmentData, techniciansData] = await Promise.all([
+        getEquipment({ limit: 100 }),
+        getTechnicians(),
+      ]);
+      
+      setEquipment(equipmentData.items || []);
+      setTechnicians(techniciansData || []);
+    } catch (error) {
+      console.error('Failed to fetch form data:', error);
+      toast.error('Failed to load form data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const technicians = [
-    { id: '1', name: 'Mike Johnson', team: 'Mechanics Team' },
-    { id: '2', name: 'John Doe', team: 'Mechanics Team' },
-    { id: '3', name: 'Sarah Wilson', team: 'Electricians Team' },
-    { id: '4', name: 'Jane Smith', team: 'Electricians Team' },
-    { id: '5', name: 'Alex Turner', team: 'IT Support Team' },
-  ];
-
-  // Auto-fill when equipment/workcenter is selected
+  // Auto-fill when equipment is selected
   useEffect(() => {
     if (formData.maintenanceFor === 'equipment' && formData.equipmentId) {
-      const selected = equipment.find(e => e.id === formData.equipmentId);
+      const selected = equipment.find(e => e.id.toString() === formData.equipmentId);
       if (selected) {
         setFormData(prev => ({
           ...prev,
-          category: selected.category,
-          team: selected.team,
-        }));
-      }
-    } else if (formData.maintenanceFor === 'workcenter' && formData.workCenterId) {
-      const selected = workCenters.find(w => w.id === formData.workCenterId);
-      if (selected) {
-        setFormData(prev => ({
-          ...prev,
-          category: selected.category,
-          team: selected.team,
+          category: selected.category_name || '',
+          team: selected.team_name || '',
         }));
       }
     }
-  }, [formData.equipmentId, formData.workCenterId, formData.maintenanceFor]);
+  }, [formData.equipmentId, formData.maintenanceFor, equipment]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +118,12 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        {loading ? (
+          <div className="p-6 text-center text-gray-500">
+            Loading form data...
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-6">
@@ -171,7 +167,7 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                       name="maintenanceFor"
                       value="equipment"
                       checked={formData.maintenanceFor === 'equipment'}
-                      onChange={(e) => setFormData({ ...formData, maintenanceFor: 'equipment', equipmentId: '', workCenterId: '' })}
+                      onChange={() => setFormData({ ...formData, maintenanceFor: 'equipment', equipmentId: '', workCenterId: '' })}
                       className="mr-2"
                     />
                     <span className="text-gray-700">Equipment</span>
@@ -182,7 +178,7 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                       name="maintenanceFor"
                       value="workcenter"
                       checked={formData.maintenanceFor === 'workcenter'}
-                      onChange={(e) => setFormData({ ...formData, maintenanceFor: 'workcenter', equipmentId: '', workCenterId: '' })}
+                      onChange={() => setFormData({ ...formData, maintenanceFor: 'workcenter', equipmentId: '', workCenterId: '' })}
                       className="mr-2"
                     />
                     <span className="text-gray-700">Work Center</span>
@@ -199,24 +195,12 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                     <option value="">Select Equipment</option>
                     {equipment.map((eq) => (
                       <option key={eq.id} value={eq.id}>
-                        {eq.name} - {eq.serialNumber}
+                        {eq.name} - {eq.equipment_code}
                       </option>
                     ))}
                   </select>
                 ) : (
-                  <select
-                    required
-                    value={formData.workCenterId}
-                    onChange={(e) => setFormData({ ...formData, workCenterId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select Work Center</option>
-                    {workCenters.map((wc) => (
-                      <option key={wc.id} value={wc.id}>
-                        {wc.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="text-sm text-gray-500 italic">Work Center selection coming soon</div>
                 )}
               </div>
 
@@ -259,7 +243,7 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                       name="maintenanceType"
                       value="corrective"
                       checked={formData.maintenanceType === 'corrective'}
-                      onChange={(e) => setFormData({ ...formData, maintenanceType: 'corrective' })}
+                      onChange={() => setFormData({ ...formData, maintenanceType: 'corrective' })}
                       className="mr-2"
                     />
                     <span className="text-gray-700">● Corrective</span>
@@ -270,7 +254,7 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                       name="maintenanceType"
                       value="preventive"
                       checked={formData.maintenanceType === 'preventive'}
-                      onChange={(e) => setFormData({ ...formData, maintenanceType: 'preventive' })}
+                      onChange={() => setFormData({ ...formData, maintenanceType: 'preventive' })}
                       className="mr-2"
                     />
                     <span className="text-gray-700">○ Preventive</span>
@@ -306,13 +290,11 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Technician</option>
-                  {technicians
-                    .filter(t => !formData.team || t.team === formData.team)
-                    .map((tech) => (
-                      <option key={tech.id} value={tech.name}>
-                        {tech.name}
-                      </option>
-                    ))}
+                  {technicians.map((tech) => (
+                    <option key={tech.id} value={tech.id}>
+                      {tech.name} {tech.team_name ? `(${tech.team_name})` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -440,6 +422,7 @@ export default function RequestForm({ isOpen, onClose, onSubmit }: RequestFormPr
             </Button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

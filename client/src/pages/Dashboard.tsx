@@ -152,7 +152,10 @@ export default function Dashboard() {
     return (
       <Layout>
         <div className="flex items-center justify-center h-96">
-          <div className="text-gray-500">Loading dashboard...</div>
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+            <p className="mt-4 text-gray-600 font-medium">Loading dashboard...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -160,42 +163,59 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back! Here's what's happening today.</p>
+      {/* Header with gradient */}
+      <div className="mb-8 fade-in">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Dashboard
+        </h1>
+        <p className="text-gray-600 mt-2 flex items-center gap-2">
+          <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          Welcome back! Here's what's happening today.
+        </p>
       </div>
 
-      {/* Top Alert Cards - Matching the design */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Top Alert Cards - Enhanced with gradients and animations */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 slide-in-bottom">
         {/* Critical Equipment */}
-        <Card className="border-2 border-red-200 bg-red-50">
-          <div className="p-6">
-            <h3 className="text-red-800 font-semibold text-lg mb-2">Critical Equipment</h3>
-            <div className="text-3xl font-bold text-red-600 mb-1">
-              {criticalEquipment.length} Units
+        <Card hover={true} className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-100 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-200/30 rounded-full -mr-16 -mt-16"></div>
+          <div className="p-6 relative">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+                <FiAlertCircle className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-red-800 font-bold text-lg">Critical Equipment</h3>
             </div>
-            <p className="text-sm text-red-700">(Health &lt; 30%)</p>
+            <div className="text-4xl font-black text-red-600 mb-1">
+              {criticalEquipment.length} <span className="text-lg font-semibold">Units</span>
+            </div>
+            <p className="text-sm text-red-700 font-medium">(Health &lt; 30%)</p>
             {criticalEquipment.length > 0 && (
-              <div className="mt-3 text-xs text-red-600">
-                Most critical: {criticalEquipment[0].name} ({criticalEquipment[0].healthPercentage}%)
+              <div className="mt-4 p-2 bg-white/60 rounded-lg text-xs text-red-600 font-medium">
+                ⚠️ Most critical: {criticalEquipment[0].name} ({criticalEquipment[0].healthPercentage}%)
               </div>
             )}
           </div>
         </Card>
 
         {/* Technician Load */}
-        <Card className="border-2 border-blue-200 bg-blue-50">
-          <div className="p-6">
-            <h3 className="text-blue-800 font-semibold text-lg mb-2">Technician Load</h3>
+        <Card hover={true} className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200/30 rounded-full -mr-16 -mt-16"></div>
+          <div className="p-6 relative">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <FiUsers className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-blue-800 font-bold text-lg">Technician Load</h3>
+            </div>
             {highestUtilizedTech ? (
               <>
-                <div className="text-3xl font-bold text-blue-600 mb-1">
-                  {highestUtilizedTech.utilizationPercentage}% Utilized
+                <div className="text-4xl font-black text-blue-600 mb-1">
+                  {highestUtilizedTech.utilizationPercentage}% <span className="text-lg font-semibold">Utilized</span>
                 </div>
-                <p className="text-sm text-blue-700">(Assign Carefully)</p>
-                <div className="mt-3 text-xs text-blue-600">
-                  {highestUtilizedTech.technicianName}: {highestUtilizedTech.activeRequests}/{highestUtilizedTech.totalCapacity} requests
+                <p className="text-sm text-blue-700 font-medium">(Assign Carefully)</p>
+                <div className="mt-4 p-2 bg-white/60 rounded-lg text-xs text-blue-600 font-medium">
+                  👤 {highestUtilizedTech.technicianName}: {highestUtilizedTech.activeRequests}/{highestUtilizedTech.totalCapacity} requests
                 </div>
               </>
             ) : (
@@ -208,17 +228,23 @@ export default function Dashboard() {
         </Card>
 
         {/* Open Requests */}
-        <Card className="border-2 border-green-200 bg-green-50">
-          <div className="p-6">
-            <h3 className="text-green-800 font-semibold text-lg mb-2">Open Requests</h3>
+        <Card hover={true} className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-100 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-green-200/30 rounded-full -mr-16 -mt-16"></div>
+          <div className="p-6 relative">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <FiClipboard className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-green-800 font-bold text-lg">Open Requests</h3>
+            </div>
             {openRequests && (
               <>
-                <div className="text-3xl font-bold text-green-600 mb-1">
-                  {openRequests.pending} Pending
+                <div className="text-4xl font-black text-green-600 mb-1">
+                  {openRequests.pending} <span className="text-lg font-semibold">Pending</span>
                 </div>
-                <p className="text-sm text-red-700">{openRequests.overdue} Overdue</p>
-                <div className="mt-3 text-xs text-green-600">
-                  Total open: {openRequests.total}
+                <p className="text-sm text-red-600 font-semibold">⏰ {openRequests.overdue} Overdue</p>
+                <div className="mt-4 p-2 bg-white/60 rounded-lg text-xs text-green-600 font-medium">
+                  📋 Total open: {openRequests.total}
                 </div>
               </>
             )}
@@ -226,66 +252,78 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Enhanced */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-blue-100 text-blue-600">
-                  <FiPackage className="w-6 h-6" />
-                </div>
-                <span className={`text-sm font-medium ${stats.totalEquipment.trendDirection === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.totalEquipment.trend > 0 ? '+' : ''}{stats.totalEquipment.trend}%
-                </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 slide-in-bottom">
+          <Card hover={true} className="overflow-hidden">
+            <div className="p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg">
+                    <FiPackage className="w-6 h-6" />
+                  </div>
+                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${stats.totalEquipment.trendDirection === 'up' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                    {stats.totalEquipment.trend > 0 ? '↑' : '↓'} {Math.abs(stats.totalEquipment.trend)}%
+                  </span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.totalEquipment.value}</h3>
-              <p className="text-sm text-gray-600">Total Equipment</p>
+              <h3 className="text-3xl font-black text-gray-900 mb-1">{stats.totalEquipment.value}</h3>
+              <p className="text-sm text-gray-500 font-medium">Total Equipment</p>
+            </div>
             </div>
           </Card>
 
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-yellow-100 text-yellow-600">
-                  <FiClipboard className="w-6 h-6" />
+          <Card hover={true} className="overflow-hidden">
+            <div className="p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white shadow-lg">
+                    <FiClipboard className="w-6 h-6" />
+                  </div>
+                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${stats.activeRequests.trendDirection === 'down' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                    {stats.activeRequests.trend > 0 ? '↑' : '↓'} {Math.abs(stats.activeRequests.trend)}%
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${stats.activeRequests.trendDirection === 'down' ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.activeRequests.trend > 0 ? '+' : ''}{stats.activeRequests.trend}%
-                </span>
+                <h3 className="text-3xl font-black text-gray-900 mb-1">{stats.activeRequests.value}</h3>
+                <p className="text-sm text-gray-500 font-medium">Active Requests</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.activeRequests.value}</h3>
-              <p className="text-sm text-gray-600">Active Requests</p>
             </div>
           </Card>
 
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-green-100 text-green-600">
-                  <FiCheckCircle className="w-6 h-6" />
+          <Card hover={true} className="overflow-hidden">
+            <div className="p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
+                    <FiCheckCircle className="w-6 h-6" />
+                  </div>
+                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${stats.completedToday.trendDirection === 'up' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                    {stats.completedToday.trend > 0 ? '↑' : '↓'} {Math.abs(stats.completedToday.trend)}%
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${stats.completedToday.trendDirection === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.completedToday.trend > 0 ? '+' : ''}{stats.completedToday.trend}%
-                </span>
+                <h3 className="text-3xl font-black text-gray-900 mb-1">{stats.completedToday.value}</h3>
+                <p className="text-sm text-gray-500 font-medium">Completed Today</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.completedToday.value}</h3>
-              <p className="text-sm text-gray-600">Completed Today</p>
             </div>
           </Card>
 
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-red-100 text-red-600">
-                  <FiAlertCircle className="w-6 h-6" />
+          <Card hover={true} className="overflow-hidden">
+            <div className="p-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg">
+                    <FiAlertCircle className="w-6 h-6" />
+                  </div>
+                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${stats.overdue.trendDirection === 'down' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                    {stats.overdue.trend > 0 ? '↑' : '↓'} {Math.abs(stats.overdue.trend)}
+                  </span>
                 </div>
-                <span className={`text-sm font-medium ${stats.overdue.trendDirection === 'down' ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.overdue.trend > 0 ? '+' : ''}{stats.overdue.trend}
-                </span>
+                <h3 className="text-3xl font-black text-gray-900 mb-1">{stats.overdue.value}</h3>
+                <p className="text-sm text-gray-500 font-medium">Overdue</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stats.overdue.value}</h3>
-              <p className="text-sm text-gray-600">Overdue</p>
             </div>
           </Card>
         </div>

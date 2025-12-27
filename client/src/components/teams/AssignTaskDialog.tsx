@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 import Badge from '../common/Badge';
 import { FiCheck, FiX, FiAlertCircle } from 'react-icons/fi';
+import { getKanbanRequests, KanbanRequest } from '../../services/api';
+import toast from 'react-hot-toast';
 
 interface AssignTaskDialogProps {
   isOpen: boolean;
@@ -28,34 +30,35 @@ export default function AssignTaskDialog({
   memberName,
 }: AssignTaskDialogProps) {
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
+  const [availableRequests, setAvailableRequests] = useState<KanbanRequest[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data - in real app, fetch from API
-  const availableRequests: MaintenanceRequest[] = [
-    {
-      id: 'REQ-2025-005',
-      equipment: 'Air Compressor',
-      type: 'corrective',
-      priority: 'high',
-      status: 'new',
-      createdDate: '2024-12-27',
-    },
-    {
-      id: 'REQ-2025-004',
-      equipment: 'Lathe Machine #3',
-      type: 'preventive',
-      priority: 'medium',
-      status: 'pending',
-      createdDate: '2024-12-26',
-    },
-    {
-      id: 'REQ-2025-002',
-      equipment: 'Dell Workstation',
-      type: 'corrective',
-      priority: 'low',
-      status: 'new',
-      createdDate: '2024-12-25',
-    },
-  ];
+  // Fetch unassigned requests from API
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailableRequests();
+    }
+  }, [isOpen]);
+
+  const fetchAvailableRequests = async () => {
+    try {
+      setLoading(true);
+      const data = await getKanbanRequests();
+      
+      // Get new and unassigned requests
+      const unassigned = [
+        ...data.new.filter(r => !r.technician_name),
+        ...data.in_progress.filter(r => !r.technician_name),
+      ];
+      
+      setAvailableRequests(unassigned);
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+      toast.error('Failed to load available requests');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAssign = () => {
     if (selectedRequestId) {
@@ -90,13 +93,15 @@ export default function AssignTaskDialog({
 
         {/* Available Requests List */}
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {availableRequests.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading requests...</div>
+          ) : availableRequests.length > 0 ? (
             availableRequests.map((request) => (
               <div
                 key={request.id}
-                onClick={() => setSelectedRequestId(request.id)}
+                onClick={() => setSelectedRequestId(request.request_number)}
                 className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedRequestId === request.id
+                  selectedRequestId === request.request_number
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
                 }`}
@@ -104,18 +109,19 @@ export default function AssignTaskDialog({
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-900">{request.id}</span>
-                      <Badge variant={getTypeColor(request.type)} size="sm">
-                        {request.type.toUpperCase()}
+                      <span className="font-semibold text-gray-900">{request.request_number}</span>
+                      <Badge variant={getTypeColor(request.request_type)} size="sm">
+                        {request.request_type.toUpperCase()}
                       </Badge>
                       <Badge variant={getPriorityColor(request.priority)} size="sm">
                         {request.priority.toUpperCase()}
                       </Badge>
                     </div>
-                    <p className="text-gray-700 font-medium">{request.equipment}</p>
-                    <p className="text-sm text-gray-500 mt-1">Created: {request.createdDate}</p>
+                    <p className="text-gray-700 font-medium">{request.equipment_name}</p>
+                    <p className="text-sm text-gray-600 mt-1">{request.subject}</p>
+                    <p className="text-sm text-gray-500 mt-1">Created: {new Date(request.created_at).toLocaleDateString()}</p>
                   </div>
-                  {selectedRequestId === request.id && (
+                  {selectedRequestId === request.request_number && (
                     <div className="ml-3">
                       <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
                         <FiCheck className="w-4 h-4 text-white" />

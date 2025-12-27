@@ -20,6 +20,8 @@ interface WorkCenter {
   departmentName: string | null;
   assignedTeamId: number | null;
   assignedTeamName: string | null;
+  assignedMemberId: number | null;
+  assignedMemberName: string | null;
   status: 'active' | 'inactive' | 'maintenance';
   capacity: number;
   utilization?: number;
@@ -108,6 +110,7 @@ export default function WorkCenters() {
         location: data.location,
         departmentId: data.department ? parseInt(data.department) : undefined,
         assignedTeamId: data.assignedTeam ? parseInt(data.assignedTeam) : undefined,
+        assignedMemberId: data.assignedMember ? parseInt(data.assignedMember) : undefined,
         capacity: 100,
         description: '',
       };
@@ -139,6 +142,7 @@ export default function WorkCenters() {
         location: data.location,
         departmentId: data.department ? parseInt(data.department) : undefined,
         assignedTeamId: data.assignedTeam ? parseInt(data.assignedTeam) : undefined,
+        assignedMemberId: data.assignedMember ? parseInt(data.assignedMember) : undefined,
       };
 
       await axios.put(
@@ -276,6 +280,12 @@ export default function WorkCenters() {
                     <span className="font-medium text-gray-900">{wc.assignedTeamName}</span>
                   </div>
                 )}
+                {wc.assignedMemberName && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Assigned To:</span>
+                    <span className="font-medium text-blue-600">{wc.assignedMemberName}</span>
+                  </div>
+                )}
               </div>
 
               {/* Utilization Bar */}
@@ -384,6 +394,7 @@ export default function WorkCenters() {
               location: selectedWorkCenter.location || '',
               department: selectedWorkCenter.departmentId?.toString() || '',
               assignedTeam: selectedWorkCenter.assignedTeamId?.toString() || '',
+              assignedMember: selectedWorkCenter.assignedMemberId?.toString() || '',
             }}
             mode="edit"
             onSubmit={handleEditWorkCenter}

@@ -8,7 +8,8 @@ import {
   FiCalendar, 
   FiUsers, 
   FiLogOut,
-  FiMapPin
+  FiMapPin,
+  FiMenu
 } from 'react-icons/fi';
 
 interface LayoutProps {
@@ -26,6 +27,7 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     // Load user from localStorage
@@ -67,64 +69,83 @@ export default function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-blue-600 to-blue-800 text-white">
+      <div className={`fixed inset-y-0 left-0 ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-gradient-to-b from-slate-900 via-blue-900 to-indigo-900 text-white shadow-2xl transition-all duration-300 z-50`}>
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 px-4 bg-blue-900">
-          <h1 className="text-2xl font-bold">🛠️ GearGuard</h1>
+        <div className="flex items-center justify-between h-16 px-4 bg-black/20 backdrop-blur-sm">
+          <h1 className={`font-bold flex items-center gap-2 ${sidebarCollapsed ? 'text-xl' : 'text-xl'}`}>
+            <span className="text-2xl">🛠️</span>
+            {!sidebarCollapsed && <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">GearGuard</span>}
+          </h1>
+          <button 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            <FiMenu className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="mt-8 px-4 space-y-2">
-          {navigation.map((item) => {
+        <nav className="mt-8 px-3 space-y-2">
+          {navigation.map((item, index) => {
             const Icon = item.icon;
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                className={`flex items-center ${sidebarCollapsed ? 'justify-center px-3' : 'px-4'} py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${
                   isActive(item.href)
-                    ? 'bg-white text-blue-600 shadow-lg'
-                    : 'text-blue-100 hover:bg-blue-700 hover:text-white'
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30 scale-105'
+                    : 'text-blue-100 hover:bg-white/10 hover:text-white hover:translate-x-1'
                 }`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <Icon className="w-5 h-5 mr-3" />
-                <span className="font-medium">{item.name}</span>
+                <Icon className={`w-5 h-5 ${sidebarCollapsed ? '' : 'mr-3'} transition-transform group-hover:scale-110`} />
+                {!sidebarCollapsed && <span className="font-medium">{item.name}</span>}
+                {isActive(item.href) && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l-full"></div>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* User Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-sm font-semibold">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/20 backdrop-blur-sm">
+          <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`flex items-center ${sidebarCollapsed ? '' : ''}`}>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center ring-2 ring-white/20 shadow-lg">
+                <span className="text-sm font-bold">
                   {user ? getInitials(user.name) : 'U'}
                 </span>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium">{user?.name || 'User'}</p>
-                <p className="text-xs text-blue-200 capitalize">{user?.role || 'User'}</p>
-              </div>
+              {!sidebarCollapsed && (
+                <div className="ml-3">
+                  <p className="text-sm font-semibold">{user?.name || 'User'}</p>
+                  <p className="text-xs text-blue-300 capitalize">{user?.role || 'User'}</p>
+                </div>
+              )}
             </div>
-            <button 
-              onClick={handleLogout}
-              className="text-blue-200 hover:text-white transition-colors"
-              title="Logout"
-            >
-              <FiLogOut className="w-5 h-5" />
-            </button>
+            {!sidebarCollapsed && (
+              <button 
+                onClick={handleLogout}
+                className="p-2 rounded-lg text-blue-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                title="Logout"
+              >
+                <FiLogOut className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="ml-64">
-        <main className="p-8">
-          {children}
+      <div className={`${sidebarCollapsed ? 'ml-20' : 'ml-64'} transition-all duration-300`}>
+        <main className="p-8 min-h-screen">
+          <div className="fade-in">
+            {children}
+          </div>
         </main>
       </div>
     </div>
