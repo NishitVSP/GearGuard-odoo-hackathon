@@ -10,7 +10,6 @@ import userRoutes from './userRoutes';
 const router = Router();
 
 // Import routes (to be implemented)
-// import equipmentRoutes from './equipmentRoutes';
 // import teamRoutes from './teamRoutes';
 // import requestRoutes from './requestRoutes';
 // import reportRoutes from './reportRoutes';
