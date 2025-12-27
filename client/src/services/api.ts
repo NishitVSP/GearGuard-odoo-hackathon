@@ -36,6 +36,80 @@ api.interceptors.response.use(
 );
 
 // ============================================
+// Authentication API
+// ============================================
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  name: string;
+  role?: 'user' | 'technician' | 'manager' | 'admin';
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+/**
+ * Register a new user
+ */
+export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
+  const response = await api.post('/auth/signup', data);
+  if (response.data.data.token) {
+    localStorage.setItem('token', response.data.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.data.user));
+  }
+  return response.data.data;
+};
+
+/**
+ * Login user
+ */
+export const login = async (data: LoginRequest): Promise<AuthResponse> => {
+  const response = await api.post('/auth/login', data);
+  if (response.data.data.token) {
+    localStorage.setItem('token', response.data.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.data.user));
+  }
+  return response.data.data;
+};
+
+/**
+ * Logout user
+ */
+export const logout = (): void => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/login';
+};
+
+/**
+ * Get current user from localStorage
+ */
+export const getCurrentUser = (): AuthResponse['user'] | null => {
+  const userStr = localStorage.getItem('user');
+  return userStr ? JSON.parse(userStr) : null;
+};
+
+/**
+ * Check if user is authenticated
+ */
+export const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem('token');
+};
+
+// ============================================
 // Dashboard API
 // ============================================
 
@@ -48,7 +122,7 @@ export interface StatWithTrend {
 export interface DashboardStatsResponse {
   totalEquipment: StatWithTrend;
   activeRequests: StatWithTrend;
-  completedToday: StatWithTrend;
+  completedToday: StatWithTrend;  
   overdue: StatWithTrend;
 }
 
