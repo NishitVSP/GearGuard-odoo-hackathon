@@ -7,8 +7,11 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate": "node dist/db/migrate.js",
-    "seed": "node dist/db/seed.js",
+    "db:migrate": "ts-node src/db/migrator.ts migrate",
+    "db:seed": "ts-node src/db/migrator.ts seed",
+    "db:reset": "ts-node src/db/migrator.ts reset",
+    "db:setup": "ts-node src/db/migrator.ts seed",
+    "db:test": "ts-node src/db/test-connection.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },

@@ -1,53 +1,397 @@
-<<<<<<< HEAD
-# GearGuard-odoo-hackathon
-=======
 # GearGuard - Enterprise Maintenance Management System
 
 🛠️ A comprehensive maintenance management system built with Express.js, TypeScript, React, and MySQL.
 
 ## 📋 Overview
 
-GearGuard is an enterprise-grade maintenance management system designed for hackathons and rapid development. It follows a clean, layered architecture with type safety throughout.
+GearGuard is an enterprise-grade maintenance management system designed to help organizations manage equipment, maintenance requests, teams, and preventive maintenance schedules. Built with a clean, layered architecture and complete type safety.
 
-## 🏗️ Architecture
+## ✨ Features
 
-- **Backend**: Express.js + TypeScript + MySQL
-- **Frontend**: React + TypeScript + Vite + TailwindCSS
-- **Database**: MySQL with InnoDB engine, foreign keys, and transactions
-- **Architecture**: Layered (Routes → Controllers → Services → Repositories)
+- 🔐 **User Management** - Role-based access control (Admin, Manager, Technician, Operator)
+- 👥 **Team Management** - Organize teams, assign tasks, manage shifts
+- 🏭 **Equipment Registry** - Track all equipment with QR codes, specifications, and documentation
+- 🔧 **Maintenance Requests** - Complete work order management system
+- 📅 **Preventive Maintenance** - Schedule and track preventive maintenance
+- 📊 **Analytics & Reporting** - KPI tracking, dashboards, and custom reports
+- 🔔 **Notifications** - Real-time alerts and customizable notifications
+- 📦 **Inventory Management** - Track spare parts and consumption
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+
+## 🏗️ Technology Stack
+
+### Backend
+- **Runtime**: Node.js + TypeScript
+- **Framework**: Express.js
+- **Database**: MySQL 8.0 (InnoDB engine)
+- **ORM**: mysql2 (raw SQL for performance)
+- **Authentication**: JWT + bcrypt
+- **Validation**: express-validator
+
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **State Management**: Redux Toolkit
+- **Data Fetching**: React Query
+- **Forms**: React Hook Form + Zod
+- **Routing**: React Router v6
+
+### Database
+- **Engine**: MySQL InnoDB
+- **Normalization**: Boyce-Codd Normal Form (BCNF)
+- **Features**: Foreign keys, transactions, triggers, stored procedures
 
 ## 📁 Project Structure
 
 ```
 gearguard/
-├── client/          # React frontend (Vite + TypeScript)
-├── server/          # Express backend (TypeScript)
-└── shared/          # Shared types (optional)
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── pages/         # Page components
+│   │   ├── services/      # API services
+│   │   ├── store/         # Redux store
+│   │   ├── types/         # TypeScript types
+│   │   └── utils/         # Utility functions
+│   └── package.json
+│
+├── server/                # Express backend
+│   ├── src/
+│   │   ├── config/       # Configuration files
+│   │   ├── controllers/  # Request handlers
+│   │   ├── db/           # Database migrations & seeds
+│   │   ├── middleware/   # Express middleware
+│   │   ├── models/       # Data models
+│   │   ├── routes/       # API routes
+│   │   ├── services/     # Business logic
+│   │   └── types/        # TypeScript types
+│   └── package.json
+│
+├── shared/               # Shared TypeScript types
+│   └── types/
+│
+├── DATABASE_SCHEMA.md    # Complete database documentation
+├── DATABASE_SETUP.md     # Database setup guide
+└── README.md            # This file
 ```
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
+### 1. Prerequisites
 
-- Node.js (v18 or higher)
-- MySQL (v8.0 or higher)
-- npm or yarn
+- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
+- **MySQL** (v8.0 or higher) - [Download](https://dev.mysql.com/downloads/)
+- **MySQL Workbench** (recommended) - [Download](https://dev.mysql.com/downloads/workbench/)
 
-### Installation
+### 2. Install Dependencies
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd GearGuard-odoo-hackathon
+```bash
+# Install server dependencies
+cd server
+npm install
+
+# Install client dependencies
+cd ../client
+npm install
+```
+
+### 3. Configure Database
+
+1. **Update MySQL password** in `server/.env`:
+   ```env
+   DB_PASSWORD=your_mysql_password
    ```
 
-2. **Install server dependencies**
+2. **Set up database**:
    ```bash
    cd server
-   npm install
+   npm run db:setup
    ```
 
-3. **Install client dependencies**
+   This will:
+   - Create the `gearguard_db` database
+   - Run all migrations
+   - Seed initial data
+
+3. **Test connection**:
+   ```bash
+   npm run db:test
+   ```
+
+### 4. Start Development Servers
+
+**Terminal 1 - Backend:**
+```bash
+cd server
+npm run dev
+```
+Backend runs on: http://localhost:5000
+
+**Terminal 2 - Frontend:**
+```bash
+cd client
+npm run dev
+```
+Frontend runs on: http://localhost:5173
+
+### 5. Default Login
+
+- **Email**: admin@gearguard.com
+- **Password**: admin123
+- ⚠️ **Change this immediately after first login!**
+
+## 📚 Database Schema
+
+The database is optimized in **Boyce-Codd Normal Form (BCNF)** with 30+ tables covering:
+
+- User Management (users, roles, profiles)
+- Team Organization (teams, departments, shifts)
+- Equipment Management (equipment, categories, specifications)
+- Maintenance Requests (work orders, tasks, history)
+- Inventory (spare parts, consumption tracking)
+- Notifications & Alerts
+- Analytics & Reporting
+
+📖 **Full documentation**: [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)
+
+## 🔧 Available Scripts
+
+### Server Scripts
+
+```bash
+npm run dev          # Start development server with hot reload
+npm run build        # Build for production
+npm run start        # Start production server
+npm run db:migrate   # Run pending migrations
+npm run db:seed      # Run migrations + seeds
+npm run db:reset     # Reset database (WARNING: deletes all data)
+npm run db:test      # Test database connection
+npm run lint         # Lint TypeScript files
+npm run format       # Format code with Prettier
+```
+
+### Client Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Lint TypeScript files
+npm run format       # Format code with Prettier
+```
+
+## 🗄️ Database Management
+
+### Using MySQL Workbench
+
+1. Open MySQL Workbench
+2. Connect to **GearGuard** connection (127.0.0.1:3306)
+3. Browse the `gearguard_db` database
+
+### Migration Commands
+
+```bash
+# Run pending migrations
+npm run db:migrate
+
+# Run migrations and seed data
+npm run db:seed
+
+# Reset entire database (⚠️ destructive)
+npm run db:reset
+
+# Test database connection
+npm run db:test
+```
+
+### Manual Queries
+
+```sql
+-- View all users with roles
+USE gearguard_db;
+
+SELECT 
+  u.id, u.name, u.email,
+  GROUP_CONCAT(ur.role) as roles
+FROM users u
+LEFT JOIN user_roles ur ON u.id = ur.user_id
+GROUP BY u.id;
+
+-- View equipment summary
+SELECT 
+  e.equipment_code, e.name,
+  ec.name as category,
+  e.status, l.name as location
+FROM equipment e
+LEFT JOIN equipment_categories ec ON e.category_id = ec.id
+LEFT JOIN locations l ON e.location_id = l.id;
+```
+
+## 🏛️ Architecture Details
+
+### Layered Architecture
+
+```
+Request → Route → Controller → Service → Repository → Database
+                      ↓
+                  Middleware (Auth, Validation, Error Handling)
+```
+
+### Key Principles
+
+1. **Type Safety** - Full TypeScript coverage
+2. **Single Responsibility** - Each layer has one job
+3. **Dependency Injection** - Services are injectable
+4. **Error Handling** - Centralized error middleware
+5. **Validation** - Input validation at controller level
+6. **Transactions** - Database transactions for data integrity
+7. **Security** - JWT auth, password hashing, SQL injection prevention
+
+## 🔐 Security Features
+
+- ✅ Password hashing with bcrypt
+- ✅ JWT-based authentication
+- ✅ Role-based access control (RBAC)
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ XSS protection
+- ✅ CORS configuration
+- ✅ Rate limiting (recommended for production)
+- ✅ Helmet.js security headers
+
+## 📊 API Documentation
+
+### Base URL
+```
+http://localhost:5000/api
+```
+
+### Authentication Endpoints
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+
+### Equipment Endpoints
+- `GET /api/equipment` - List all equipment
+- `GET /api/equipment/:id` - Get equipment details
+- `POST /api/equipment` - Create new equipment
+- `PUT /api/equipment/:id` - Update equipment
+- `DELETE /api/equipment/:id` - Delete equipment
+
+### Maintenance Request Endpoints
+- `GET /api/requests` - List all requests
+- `GET /api/requests/:id` - Get request details
+- `POST /api/requests` - Create new request
+- `PUT /api/requests/:id` - Update request
+- `PATCH /api/requests/:id/status` - Update request status
+
+*(Full API documentation coming soon)*
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+cd server
+npm test
+
+# Frontend tests
+cd client
+npm test
+```
+
+## 📦 Deployment
+
+### Production Build
+
+```bash
+# Build backend
+cd server
+npm run build
+
+# Build frontend
+cd client
+npm run build
+```
+
+### Environment Variables
+
+Update these for production:
+- `NODE_ENV=production`
+- `JWT_SECRET=<strong-secret-key>`
+- `DB_PASSWORD=<secure-password>`
+- `CORS_ORIGIN=<your-frontend-url>`
+
+## 🤝 Contributing
+
+This is a hackathon project, but contributions are welcome!
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+MIT License - feel free to use this for your projects!
+
+## 🆘 Troubleshooting
+
+### Database Connection Issues
+
+```bash
+# Test MySQL connection
+mysql -u root -p
+
+# Check MySQL service
+# Windows: Services -> MySQL80
+# Mac: brew services list
+# Linux: systemctl status mysql
+```
+
+### Port Already in Use
+
+```bash
+# Kill process on port 5000 (backend)
+npx kill-port 5000
+
+# Kill process on port 5173 (frontend)
+npx kill-port 5173
+```
+
+### Migration Errors
+
+```bash
+# Check migration status
+npm run db:test
+
+# Reset if needed (⚠️ deletes all data)
+npm run db:reset
+```
+
+## 📞 Support
+
+For issues and questions:
+1. Check [DATABASE_SETUP.md](./DATABASE_SETUP.md)
+2. Review MySQL Workbench connection
+3. Verify `.env` configuration
+4. Check server logs
+
+## 🎯 Roadmap
+
+- [ ] API documentation with Swagger
+- [ ] Unit and integration tests
+- [ ] Docker containerization
+- [ ] Mobile app (React Native)
+- [ ] Real-time updates (WebSockets)
+- [ ] Advanced reporting and dashboards
+- [ ] Multi-language support
+- [ ] File upload functionality
+
+---
+
+**Built with ❤️ for the Odoo Hackathon**
    ```bash
    cd ../client
    npm install
