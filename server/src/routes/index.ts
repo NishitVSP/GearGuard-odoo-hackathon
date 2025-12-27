@@ -2,8 +2,11 @@
 
 import { Router } from 'express';
 import dashboardRoutes from './dashboardRoutes';
-import teamRoutes from './teamRoutes';
 import authRoutes from './authRoutes';
+import teamRoutes from './teamRoutes';
+import requestRoutes from './requestRoutes';
+import equipmentRoutes from './equipmentRoutes';
+import userRoutes from './userRoutes';
 const router = Router();
 
 // Import routes (to be implemented)
@@ -15,9 +18,11 @@ const router = Router();
 // Use routes
 router.use('/dashboard', dashboardRoutes);
 // router.use('/equipment', equipmentRoutes);
-router.use('/teams', teamRoutes);
-// router.use('/requests', requestRoutes);
 router.use('/auth', authRoutes);
+router.use('/teams', teamRoutes);
+router.use('/requests', requestRoutes);
+router.use('/equipment', equipmentRoutes);
+router.use('/users', userRoutes);
 // router.use('/reports', reportRoutes);
 
 // Placeholder endpoint
