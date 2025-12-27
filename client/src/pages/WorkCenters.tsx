@@ -3,6 +3,9 @@ import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import WorkCenterForm, { WorkCenterFormData } from '../components/workcenters/WorkCenterForm';
+import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
 import { FiPlus, FiSearch, FiEdit, FiTrash2, FiMapPin } from 'react-icons/fi';
 
 interface WorkCenter {
@@ -22,14 +25,9 @@ interface WorkCenter {
 export default function WorkCenters() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newWorkCenter, setNewWorkCenter] = useState({
-    name: '',
-    code: '',
-    category: '',
-    location: '',
-    department: '',
-    assignedTeam: '',
-  });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedWorkCenter, setSelectedWorkCenter] = useState<WorkCenter | null>(null);
 
   // Mock data
   const workCenters: WorkCenter[] = [
@@ -137,19 +135,34 @@ export default function WorkCenters() {
     wc.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddWorkCenter = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically make an API call
-    console.log('Adding work center:', newWorkCenter);
+  const handleAddWorkCenter = (data: WorkCenterFormData) => {
+    console.log('Adding work center:', data);
+    // TODO: Send to backend API
     setShowAddForm(false);
-    setNewWorkCenter({
-      name: '',
-      code: '',
-      category: '',
-      location: '',
-      department: '',
-      assignedTeam: '',
-    });
+  };
+
+  const handleEditWorkCenter = (data: WorkCenterFormData) => {
+    console.log('Updating work center:', selectedWorkCenter?.id, data);
+    // TODO: Send to backend API
+    setIsEditModalOpen(false);
+    setSelectedWorkCenter(null);
+  };
+
+  const handleDeleteWorkCenter = () => {
+    console.log('Deleting work center:', selectedWorkCenter?.id);
+    // TODO: Send to backend API
+    setIsDeleteDialogOpen(false);
+    setSelectedWorkCenter(null);
+  };
+
+  const openEditModal = (wc: WorkCenter) => {
+    setSelectedWorkCenter(wc);
+    setIsEditModalOpen(true);
+  };
+
+  const openDeleteDialog = (wc: WorkCenter) => {
+    setSelectedWorkCenter(wc);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
@@ -271,10 +284,16 @@ export default function WorkCenters() {
 
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
-                <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                <button 
+                  onClick={() => openEditModal(wc)}
+                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                >
                   <FiEdit className="inline mr-1" /> Edit
                 </button>
-                <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                <button 
+                  onClick={() => openDeleteDialog(wc)}
+                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                >
                   <FiTrash2 className="inline mr-1" /> Delete
                 </button>
               </div>
@@ -284,111 +303,62 @@ export default function WorkCenters() {
       </div>
 
       {/* Add Work Center Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Add Work Center</h2>
-            </div>
-            <form onSubmit={handleAddWorkCenter} className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newWorkCenter.name}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Production Floor A"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newWorkCenter.code}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, code: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="WC-PROD-A"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={newWorkCenter.category}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, category: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newWorkCenter.department}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, department: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Production"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newWorkCenter.location}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Building 1, Floor 1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned Team <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={newWorkCenter.assignedTeam}
-                    onChange={(e) => setNewWorkCenter({ ...newWorkCenter, assignedTeam: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select Team</option>
-                    {teams.map(team => (
-                      <option key={team} value={team}>{team}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <Button type="button" variant="secondary" onClick={() => setShowAddForm(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary">
-                  Add Work Center
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showAddForm}
+        onClose={() => setShowAddForm(false)}
+        title="Add Work Center"
+        size="lg"
+      >
+        <WorkCenterForm
+          onSubmit={handleAddWorkCenter}
+          onCancel={() => setShowAddForm(false)}
+          categories={categories}
+          teams={teams}
+        />
+      </Modal>
+
+      {/* Edit Work Center Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedWorkCenter(null);
+        }}
+        title="Edit Work Center"
+        size="lg"
+      >
+        {selectedWorkCenter && (
+          <WorkCenterForm
+            workCenter={{
+              name: selectedWorkCenter.name,
+              code: selectedWorkCenter.code,
+              category: selectedWorkCenter.category,
+              location: selectedWorkCenter.location,
+              department: selectedWorkCenter.department,
+              assignedTeam: selectedWorkCenter.assignedTeam,
+            }}
+            mode="edit"
+            onSubmit={handleEditWorkCenter}
+            onCancel={() => {
+              setIsEditModalOpen(false);
+              setSelectedWorkCenter(null);
+            }}
+            categories={categories}
+            teams={teams}
+          />
+        )}
+      </Modal>
+
+      {/* Delete Work Center Confirmation */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setSelectedWorkCenter(null);
+        }}
+        onConfirm={handleDeleteWorkCenter}
+        equipmentName={selectedWorkCenter?.name || ''}
+      />
     </Layout>
   );
 }
