@@ -4,12 +4,22 @@ import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import AddEquipmentForm, { EquipmentFormData } from '../components/equipment/AddEquipmentForm';
 import { FiPlus, FiSearch, FiFilter, FiEdit, FiTrash2 } from 'react-icons/fi';
 
 export default function EquipmentList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddEquipment = (data: EquipmentFormData) => {
+    console.log('New equipment data:', data);
+    // TODO: Send data to backend API
+    // For now, just close the modal
+    setIsModalOpen(false);
+  };
 
   // Mock data
   const equipment = [
@@ -107,7 +117,7 @@ export default function EquipmentList() {
           <h1 className="text-3xl font-bold text-gray-900">Equipment</h1>
           <p className="text-gray-600 mt-1">Manage your equipment inventory</p>
         </div>
-        <Button variant="primary" icon={<FiPlus />}>
+        <Button variant="primary" icon={<FiPlus />} onClick={() => setIsModalOpen(true)}>
           Add Equipment
         </Button>
       </div>
@@ -232,6 +242,19 @@ export default function EquipmentList() {
           </div>
         </Card>
       )}
+
+      {/* Add Equipment Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add New Equipment"
+        size="xl"
+      >
+        <AddEquipmentForm
+          onSubmit={handleAddEquipment}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      </Modal>
     </Layout>
   );
 }
