@@ -3,8 +3,8 @@
 🛠️ A comprehensive maintenance management system built with Express.js, TypeScript, React, and MySQL.
 
 ## 📋 Overview
-
-GearGuard is an enterprise-grade maintenance management system designed to help organizations manage equipment, maintenance requests, teams, and preventive maintenance schedules. Built with a clean, layered architecture and complete type safety.
+ 
+GearGuard  is an enterprise-grade maintenance management system designed to help organizations manage equipment, maintenance requests, teams, and preventive maintenance schedules. Built with a clean, layered architecture and complete type safety.
 
 ## ✨ Features
 
