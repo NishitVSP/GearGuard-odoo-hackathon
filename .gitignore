@@ -47,3 +47,5 @@ temp/
 # Deployment
 .vercel
 out/
+
+package-lock.json
