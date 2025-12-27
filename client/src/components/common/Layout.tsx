@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { ReactNode, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { 
   FiHome, 
   FiPackage, 
@@ -14,8 +15,45 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Load user from localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: FiHome },
@@ -63,14 +101,20 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-sm font-semibold">AD</span>
+                <span className="text-sm font-semibold">
+                  {user ? getInitials(user.name) : 'U'}
+                </span>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-blue-200">Manager</p>
+                <p className="text-sm font-medium">{user?.name || 'User'}</p>
+                <p className="text-xs text-blue-200 capitalize">{user?.role || 'User'}</p>
               </div>
             </div>
-            <button className="text-blue-200 hover:text-white transition-colors">
+            <button 
+              onClick={handleLogout}
+              className="text-blue-200 hover:text-white transition-colors"
+              title="Logout"
+            >
               <FiLogOut className="w-5 h-5" />
             </button>
           </div>

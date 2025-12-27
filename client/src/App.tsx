@@ -2,8 +2,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
+// Components
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+
 // Pages
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import EquipmentList from './pages/EquipmentList';
 import EquipmentDetail from './pages/EquipmentDetail';
@@ -28,15 +32,16 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/equipment" element={<EquipmentList />} />
-          <Route path="/equipment/:id" element={<EquipmentDetail />} />
-          <Route path="/workcenters" element={<WorkCenters />} />
-          <Route path="/requests" element={<KanbanBoard />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/teams" element={<TeamManagement />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/equipment" element={<ProtectedRoute><EquipmentList /></ProtectedRoute>} />
+          <Route path="/equipment/:id" element={<ProtectedRoute><EquipmentDetail /></ProtectedRoute>} />
+          <Route path="/workcenters" element={<ProtectedRoute><WorkCenters /></ProtectedRoute>} />
+          <Route path="/requests" element={<ProtectedRoute><KanbanBoard /></ProtectedRoute>} />
+          <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><TeamManagement /></ProtectedRoute>} />
           
           {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />

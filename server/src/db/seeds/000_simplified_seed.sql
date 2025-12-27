@@ -8,15 +8,15 @@
 USE gearguard_db;
 
 -- ============================================
--- 1. Seed Default Admin User
+-- 1. Seed Default Users
 -- ============================================
--- Password: admin123 (hashed with bcrypt)
+-- Passwords: Admin@123, Manager@123, Tech@123, User@123 (hashed with bcrypt)
 INSERT INTO users (email, password_hash, name, role, is_active) VALUES
-('admin@gearguard.com', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8Z8W5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', 'System Admin', 'admin', TRUE),
-('manager@gearguard.com', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8Z8W5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', 'John Manager', 'manager', TRUE),
-('tech1@gearguard.com', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8Z8W5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', 'Mike Technician', 'technician', TRUE),
-('tech2@gearguard.com', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8Z8W5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', 'Sarah Technician', 'technician', TRUE),
-('user@gearguard.com', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8Z8W5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z5Z', 'Regular User', 'user', TRUE);
+('admin@gearguard.com', '$2a$10$ULiLp05oHdfupi.DcQ3hmuFPMA23Dxa3kV3ZSvhcNwuV37TRTHUgq', 'System Admin', 'admin', TRUE),
+('manager@gearguard.com', '$2a$10$3e4rzRLvG1krDED6IDFhXeYtmzM/zpzglfdLfvdAv6iAosZYaSw9u', 'John Manager', 'manager', TRUE),
+('tech1@gearguard.com', '$2a$10$4euPUtV7pS0Wk5xolhqwEOZxbfY99w8ylZlPOGczOMoN.KICYDb4G', 'Mike Technician', 'technician', TRUE),
+('tech2@gearguard.com', '$2a$10$4euPUtV7pS0Wk5xolhqwEOZxbfY99w8ylZlPOGczOMoN.KICYDb4G', 'Sarah Technician', 'technician', TRUE),
+('user@gearguard.com', '$2a$10$LFokfzX1YHb7LW.JBBmRL./zD.6pBOvahB/4ub1yRaPro01O6BdTG', 'Regular User', 'user', TRUE);
 
 -- ============================================
 -- 2. Seed Departments
