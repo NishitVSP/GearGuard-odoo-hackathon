@@ -2,7 +2,6 @@
 
 import { Router } from 'express';
 import dashboardRoutes from './dashboardRoutes';
-import dashboardTestRoutes from './dashboardTestRoutes';
 import authRoutes from './authRoutes';
 const router = Router();
 
@@ -10,12 +9,10 @@ const router = Router();
 // import equipmentRoutes from './equipmentRoutes';
 // import teamRoutes from './teamRoutes';
 // import requestRoutes from './requestRoutes';
-// import authRoutes from './authRoutes';
 // import reportRoutes from './reportRoutes';
 
 // Use routes
 router.use('/dashboard', dashboardRoutes);
-router.use('/dashboard-test', dashboardTestRoutes); // Test routes without auth
 // router.use('/equipment', equipmentRoutes);
 // router.use('/teams', teamRoutes);
 // router.use('/requests', requestRoutes);
