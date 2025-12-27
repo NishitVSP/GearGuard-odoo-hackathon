@@ -3,7 +3,9 @@ import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import RequestForm, { RequestFormData } from '../components/maintenance-request/RequestForm';
 import { FiPlus, FiClock, FiUser, FiMoreVertical } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 interface Request {
   id: string;
@@ -18,8 +20,11 @@ interface Request {
 }
 
 export default function KanbanBoard() {
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [draggedRequest, setDraggedRequest] = useState<string | null>(null);
+  
   // Mock data
-  const [requests] = useState<Request[]>([
+  const [requests, setRequests] = useState<Request[]>([
     {
       id: 'REQ-2025-001',
       subject: 'CNC Machine calibration needed',
@@ -131,6 +136,53 @@ export default function KanbanBoard() {
     return colors[index];
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, requestId: string) => {
+    setDraggedRequest(requestId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetStage: 'new' | 'in_progress' | 'repaired' | 'scrap') => {
+    e.preventDefault();
+    
+    if (!draggedRequest) return;
+
+    setRequests(prev => 
+      prev.map(req => 
+        req.id === draggedRequest 
+          ? { ...req, stage: targetStage }
+          : req
+      )
+    );
+
+    toast.success(`Request moved to ${targetStage.replace('_', ' ').toUpperCase()}`);
+    setDraggedRequest(null);
+  };
+
+  const handleCreateRequest = (data: RequestFormData) => {
+    const newRequest: Request = {
+      id: `REQ-2025-${String(requests.length + 1).padStart(3, '0')}`,
+      subject: data.subject,
+      equipment: data.maintenanceFor === 'equipment' 
+        ? `Equipment #${data.equipmentId}` 
+        : `Work Center #${data.workCenterId}`,
+      stage: 'new',
+      technician: data.technician || 'Unassigned',
+      priority: data.priority,
+      createdDate: new Date().toISOString().split('T')[0],
+      deadline: data.scheduledDate,
+      avatar: data.technician ? data.technician.split(' ').map(n => n[0]).join('') : undefined,
+    };
+
+    setRequests(prev => [newRequest, ...prev]);
+    toast.success('Request created successfully!');
+  };
+
   return (
     <Layout>
       {/* Header */}
@@ -143,7 +195,11 @@ export default function KanbanBoard() {
           <Button variant="secondary">
             Filters
           </Button>
-          <Button variant="primary" icon={<FiPlus />}>
+          <Button 
+            variant="primary" 
+            icon={<FiPlus />}
+            onClick={() => setShowRequestForm(true)}
+          >
             New Request
           </Button>
         </div>
@@ -167,10 +223,21 @@ export default function KanbanBoard() {
               </div>
 
               {/* Cards Container */}
-              <div className={`flex-1 p-4 border-2 border-t-0 ${stage.color} rounded-b-xl min-h-[600px] space-y-3`}>
+              <div 
+                className={`flex-1 p-4 border-2 border-t-0 ${stage.color} rounded-b-xl min-h-[600px] space-y-3`}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, stage.id as any)}
+              >
                 {stageRequests.map((request) => (
-                  <Card key={request.id} className="hover:shadow-lg transition-all cursor-move">
-                    <div className="p-4">
+                  <Card 
+                    key={request.id} 
+                    className="hover:shadow-lg transition-all cursor-move"
+                  >
+                    <div 
+                      className="p-4"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, request.id)}
+                    >
                       {/* Card Header */}
                       <div className="flex items-start justify-between mb-3">
                         <span className="text-xs font-semibold text-gray-500">{request.id}</span>
@@ -262,6 +329,13 @@ export default function KanbanBoard() {
           </div>
         </Card>
       </div>
+
+      {/* Request Form Modal */}
+      <RequestForm 
+        isOpen={showRequestForm}
+        onClose={() => setShowRequestForm(false)}
+        onSubmit={handleCreateRequest}
+      />
     </Layout>
   );
 }

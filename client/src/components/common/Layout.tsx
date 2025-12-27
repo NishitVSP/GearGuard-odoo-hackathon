@@ -6,7 +6,8 @@ import {
   FiClipboard, 
   FiCalendar, 
   FiUsers, 
-  FiLogOut 
+  FiLogOut,
+  FiMapPin
 } from 'react-icons/fi';
 
 interface LayoutProps {
@@ -19,6 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: FiHome },
     { name: 'Equipment', href: '/equipment', icon: FiPackage },
+    { name: 'Work Centers', href: '/workcenters', icon: FiMapPin },
     { name: 'Requests', href: '/requests', icon: FiClipboard },
     { name: 'Calendar', href: '/calendar', icon: FiCalendar },
     { name: 'Teams', href: '/teams', icon: FiUsers },
