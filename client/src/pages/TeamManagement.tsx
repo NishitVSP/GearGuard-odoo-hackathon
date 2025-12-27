@@ -381,29 +381,6 @@ export default function TeamManagement() {
                   })}
                 </div>
               </Card>
-                          {member.activeRequests}
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 mt-4">
-                        <button 
-                          onClick={() => setViewProfileMember(member)}
-                          className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        >
-                          View Profile
-                        </button>
-                        <button 
-                          onClick={() => setAssignTaskMember(member)}
-                          className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        >
-                          Assign Task
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
             </>
           ) : (
             <Card>
@@ -416,6 +393,7 @@ export default function TeamManagement() {
           )}
         </div>
       </div>
+      )}
 
       {/* Add Team Modal */}
       <Modal
