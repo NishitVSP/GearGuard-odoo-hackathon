@@ -34,3 +34,16 @@ coverage/
 .cache/
 tmp/
 temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# Git
+*.orig
+
+# Deployment
+.vercel
+out/
