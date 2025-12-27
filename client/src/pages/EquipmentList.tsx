@@ -6,6 +6,7 @@ import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
 import AddEquipmentForm, { EquipmentFormData } from '../components/equipment/AddEquipmentForm';
+import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
 import { FiPlus, FiSearch, FiFilter, FiEdit, FiTrash2 } from 'react-icons/fi';
 
 export default function EquipmentList() {
@@ -13,12 +14,42 @@ export default function EquipmentList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState<any>(null);
+  const [deletingEquipment, setDeletingEquipment] = useState<any>(null);
 
   const handleAddEquipment = (data: EquipmentFormData) => {
     console.log('New equipment data:', data);
     // TODO: Send data to backend API
-    // For now, just close the modal
     setIsModalOpen(false);
+  };
+
+  const handleEditEquipment = (data: EquipmentFormData) => {
+    console.log('Updated equipment data:', data);
+    // TODO: Send updated data to backend API
+    setEditingEquipment(null);
+  };
+
+  const handleDeleteEquipment = () => {
+    console.log('Deleting equipment:', deletingEquipment?.id);
+    // TODO: Send delete request to backend API
+    setDeletingEquipment(null);
+  };
+
+  const openEditModal = (item: any) => {
+    const equipmentData: EquipmentFormData = {
+      name: item.name,
+      equipmentCategory: item.category,
+      company: '',
+      usedBy: 'Employee',
+      maintenanceTeam: '',
+      assignedDate: '',
+      technician: '',
+      employee: item.assignedTo,
+      scrapDate: '',
+      usedInLocation: '',
+      workCenter: item.department,
+    };
+    setEditingEquipment({ ...item, formData: equipmentData });
   };
 
   // Mock data
@@ -217,10 +248,22 @@ export default function EquipmentList() {
 
               {/* Actions */}
               <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
-                <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(item);
+                  }}
+                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                >
                   <FiEdit className="inline mr-1" /> Edit
                 </button>
-                <button className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingEquipment(item);
+                  }}
+                  className="flex-1 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                >
                   <FiTrash2 className="inline mr-1" /> Delete
                 </button>
               </div>
@@ -255,6 +298,31 @@ export default function EquipmentList() {
           onCancel={() => setIsModalOpen(false)}
         />
       </Modal>
+
+      {/* Edit Equipment Modal */}
+      <Modal
+        isOpen={!!editingEquipment}
+        onClose={() => setEditingEquipment(null)}
+        title="Edit Equipment"
+        size="xl"
+      >
+        {editingEquipment && (
+          <AddEquipmentForm
+            equipment={editingEquipment.formData}
+            mode="edit"
+            onSubmit={handleEditEquipment}
+            onCancel={() => setEditingEquipment(null)}
+          />
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={!!deletingEquipment}
+        onClose={() => setDeletingEquipment(null)}
+        onConfirm={handleDeleteEquipment}
+        equipmentName={deletingEquipment?.name || ''}
+      />
     </Layout>
   );
 }

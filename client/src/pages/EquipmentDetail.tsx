@@ -1,8 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Layout from '../components/common/Layout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import Modal from '../components/common/Modal';
+import AddEquipmentForm, { EquipmentFormData } from '../components/equipment/AddEquipmentForm';
+import DeleteConfirmDialog from '../components/equipment/DeleteConfirmDialog';
 import { 
   FiArrowLeft, 
   FiEdit, 
@@ -16,6 +20,8 @@ import {
 export default function EquipmentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Mock data
   const equipment = {
@@ -33,6 +39,35 @@ export default function EquipmentDetail() {
     warrantyExpiry: '2027-01-15',
     lastMaintenance: '2024-12-15',
     nextMaintenance: '2025-01-15',
+  };
+
+  // Convert equipment data to form format
+  const equipmentFormData: EquipmentFormData = {
+    name: equipment.name,
+    equipmentCategory: equipment.category,
+    company: '',
+    usedBy: 'Employee',
+    maintenanceTeam: equipment.assignedTeam,
+    assignedDate: equipment.purchaseDate,
+    technician: equipment.assignedTechnician,
+    employee: equipment.assignedTo,
+    scrapDate: '',
+    usedInLocation: equipment.location,
+    workCenter: equipment.department,
+  };
+
+  const handleEditEquipment = (data: EquipmentFormData) => {
+    console.log('Updated equipment data:', data);
+    // TODO: Send updated data to backend API
+    setIsEditModalOpen(false);
+  };
+
+  const handleDeleteEquipment = () => {
+    console.log('Deleting equipment:', id);
+    // TODO: Send delete request to backend API
+    setIsDeleteDialogOpen(false);
+    // Navigate back to equipment list after deletion
+    navigate('/equipment');
   };
 
   const maintenanceHistory = [
@@ -133,10 +168,10 @@ export default function EquipmentDetail() {
           </Badge>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" icon={<FiEdit />}>
+          <Button variant="secondary" icon={<FiEdit />} onClick={() => setIsEditModalOpen(true)}>
             Edit
           </Button>
-          <Button variant="danger" icon={<FiTrash2 />}>
+          <Button variant="danger" icon={<FiTrash2 />} onClick={() => setIsDeleteDialogOpen(true)}>
             Delete
           </Button>
         </div>
@@ -352,6 +387,29 @@ export default function EquipmentDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Equipment Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Equipment"
+        size="xl"
+      >
+        <AddEquipmentForm
+          equipment={equipmentFormData}
+          mode="edit"
+          onSubmit={handleEditEquipment}
+          onCancel={() => setIsEditModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteEquipment}
+        equipmentName={equipment.name}
+      />
     </Layout>
   );
 }

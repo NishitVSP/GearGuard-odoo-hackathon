@@ -5,6 +5,8 @@ import { FiCheck, FiX } from 'react-icons/fi';
 interface AddEquipmentFormProps {
   onSubmit: (data: EquipmentFormData) => void;
   onCancel: () => void;
+  equipment?: EquipmentFormData; // Optional data for editing mode
+  mode?: 'add' | 'edit'; // Form mode
 }
 
 export interface EquipmentFormData {
@@ -21,20 +23,22 @@ export interface EquipmentFormData {
   workCenter: string;
 }
 
-export default function AddEquipmentForm({ onSubmit, onCancel }: AddEquipmentFormProps) {
-  const [formData, setFormData] = useState<EquipmentFormData>({
-    name: '',
-    equipmentCategory: '',
-    company: '',
-    usedBy: 'Employee',
-    maintenanceTeam: '',
-    assignedDate: '',
-    technician: '',
-    employee: '',
-    scrapDate: '',
-    usedInLocation: '',
-    workCenter: '',
-  });
+export default function AddEquipmentForm({ onSubmit, onCancel, equipment, mode = 'add' }: AddEquipmentFormProps) {
+  const [formData, setFormData] = useState<EquipmentFormData>(
+    equipment || {
+      name: '',
+      equipmentCategory: '',
+      company: '',
+      usedBy: 'Employee',
+      maintenanceTeam: '',
+      assignedDate: '',
+      technician: '',
+      employee: '',
+      scrapDate: '',
+      usedInLocation: '',
+      workCenter: '',
+    }
+  );
 
   const [errors, setErrors] = useState<Partial<Record<keyof EquipmentFormData, string>>>({});
 
@@ -274,7 +278,7 @@ export default function AddEquipmentForm({ onSubmit, onCancel }: AddEquipmentFor
           variant="primary"
           icon={<FiCheck />}
         >
-          Add Equipment
+          {mode === 'edit' ? 'Update Equipment' : 'Add Equipment'}
         </Button>
       </div>
     </form>
